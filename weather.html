@@ -110,10 +110,54 @@
         }
         
         function displayData(data) { displayCurrentWeather(data); if(forecastType === 'hourly') { displayHourlyForecast(data); } else { displayDailyForecast(data); } resultsContent.classList.remove('hidden'); }
-        function displayCurrentWeather({ location, current }) {
-            currentWeatherCard.innerHTML = `<div class="flex flex-col md:flex-row justify-between items-center gap-4"><div class="text-center md:text-left"><h2 class="text-3xl font-bold text-sky-800">${location.name}</h2><p class="text-gray-500">${translateWeatherCondition(current.condition.text)}</p></div><div class="flex items-center gap-4"><img src="https:${current.condition.icon}" alt="${current.condition.text}" class="w-20 h-20"><p class="text-6xl font-bold">${Math.round(current.temp_c)}<span class="text-3xl align-top">&deg;C</span></p></div><div class="text-center md:text-right text-gray-600"><p>รู้สึกเหมือน: ${Math.round(current.feelslike_c)}&deg;C</p><p>ความชื้น: ${current.humidity}%</p><p>ลม: ${Math.round(current.wind_kph)} กม./ชม.</p><p class="font-semibold text-sky-700">ดัชนี UV: ${current.uv}</p></div></div>`;
+        function displayCurrentWeather(data) { 
+            const { location, current, forecast } = data;
+            const todayForecast = forecast.forecastday[0];
+            const astro = todayForecast.astro;
+            
+            currentWeatherCard.innerHTML = `
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="text-center md:text-left">
+                        <h2 class="text-3xl font-bold text-sky-800">${location.name}</h2>
+                        <p class="text-gray-500">${current.condition.text}</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <img src="https:${current.condition.icon}" alt="${current.condition.text}" class="w-20 h-20">
+                        <p class="text-6xl font-bold">${Math.round(current.temp_c)}<span class="text-3xl align-top">&deg;C</span></p>
+                    </div>
+                    <div class="text-center md:text-right text-gray-600">
+                        <p>รู้สึกเหมือน: ${Math.round(current.feelslike_c)}&deg;C</p>
+                        <p>ความชื้น: ${current.humidity}%</p>
+                        <p>ลม: ${Math.round(current.wind_kph)} กม./ชม.</p>
+                        <p class="font-semibold text-sky-700">ดัชนี UV: ${current.uv}</p>
+                    </div>
+                </div>
+                
+                <!-- Additional Weather Details Card -->
+                <div class="weather-card mt-6 p-4">
+                    <h3 class="text-xl font-bold text-sky-800 mb-3">ข้อมูลเพิ่มเติมวันนี้</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="text-center">
+                            <p class="text-gray-600 text-sm">ทิศทางลม</p>
+                            <p class="text-lg font-semibold">${current.wind_dir}</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-gray-600 text-sm">ลมกระโชก</p>
+                            <p class="text-lg font-semibold">${current.gust_kph} กม./ชม.</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-gray-600 text-sm">ความกดอากาศ</p>
+                            <p class="text-lg font-semibold">${current.pressure_mb} มบ.</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-gray-600 text-sm">ทัศนวิสัย</p>
+                            <p class="text-lg font-semibold">${current.vis_km} กม.</p>
+                        </div>
+                    </div>
+                </div>
+            `; 
         }
-        function displayHourlyForecast({ forecast }) { forecastHeader.textContent = 'พยากรณ์รายชั่วโมงสำหรับวันนี้'; const todayForecast = forecast.forecastday[0].hour; const now = new Date(); const currentHour = now.getHours(); forecastGrid.className = 'grid grid-cols-1 gap-4'; forecastGrid.innerHTML = todayForecast.filter(hourData => new Date(hourData.time_epoch * 1000).getHours() >= currentHour).map(hourData => { const time = new Date(hourData.time_epoch * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }); return `<div class="weather-card flex items-center justify-between p-3"><p class="font-bold text-lg w-1/4">${time} น.</p><div class="flex items-center gap-2 w-1/4"><img src="https:${hourData.condition.icon}" alt="${hourData.condition.text}" class="w-10 h-10"></div><p class="w-1/4 text-center">${translateWeatherCondition(hourData.condition.text)}</p><p class="text-2xl font-semibold w-1/4 text-right">${Math.round(hourData.temp_c)}&deg;C</p></div>`; }).join(''); }
+        function displayHourlyForecast({ forecast }) { forecastHeader.textContent = 'พยากรณ์รายชั่วโมงสำหรับวันนี้'; const todayForecast = forecast.forecastday[0].hour; const now = new Date(); const currentHour = now.getHours(); forecastGrid.className = 'grid grid-cols-1 gap-4'; forecastGrid.innerHTML = todayForecast.filter(hourData => new Date(hourData.time_epoch * 1000).getHours() >= currentHour).map(hourData => { const time = new Date(hourData.time_epoch * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }); return `<div class="weather-card flex items-center justify-between p-3"><p class="font-bold text-lg w-1/4">${time} น.</p><div class="flex items-center gap-2 w-1/4"><img src="https:${hourData.condition.icon}" alt="${hourData.condition.text}" class="w-10 h-10"></div><p class="w-1/4 text-center">${hourData.condition.text}</p><p class="text-2xl font-semibold w-1/4 text-right">${Math.round(hourData.temp_c)}&deg;C</p></div>`; }).join(''); }
         function displayDailyForecast({ forecast }) { forecastHeader.textContent = 'พยากรณ์ล่วงหน้า 3 วัน'; forecastGrid.className = 'grid grid-cols-1 md:grid-cols-3 gap-4'; forecastGrid.innerHTML = forecast.forecastday.map(dayData => { const date = new Date(dayData.date_epoch * 1000); const dayName = new Intl.DateTimeFormat('th-TH', { weekday: 'long'}).format(date); 
             // Determine moon phase text
             let moonPhaseText = '';
@@ -131,7 +175,7 @@
                 <p class="font-bold text-xl">${dayName}</p>
                 <p class="text-gray-500 text-sm">${date.toLocaleString('th-TH', { day: 'numeric', month: 'short' })}</p>
                 <img src="https:${dayData.day.condition.icon}" alt="${dayData.day.condition.text}" class="w-16 h-16 my-2">
-                <p class="text-sm">${translateWeatherCondition(dayData.day.condition.text)}</p>
+                <p class="text-sm">${dayData.day.condition.text}</p>
                 <p class="text-2xl font-bold my-1">${Math.round(dayData.day.maxtemp_c)}&deg; / ${Math.round(dayData.day.mintemp_c)}&deg;</p>
                 <p class="text-sm text-blue-600">โอกาสเกิดฝน: ${dayData.day.daily_chance_of_rain}%</p>
                 
@@ -155,57 +199,6 @@
                 </div>
             </div>`; }).join(''); }
         
-        </div>`; }).join(''); }
-
-        // Function to translate English weather conditions to Thai
-        function translateWeatherCondition(condition) {
-            const translations = {
-                // Sunny conditions
-                "Sunny": "แดดจัด",
-                "Clear": "ท้องฟ้าโปร่ง",
-                "Partly cloudy": "มีเมฆบางส่วน",
-                "Cloudy": "มีเมฆมาก",
-                "Overcast": "มีเมฆเต็มท้องฟ้า",
-                
-                // Rain conditions
-                "Patchy rain nearby": "มีฝนตกบางแห่งใกล้เคียง",
-                "Patchy light drizzle": "มีฝนละอองบางแห่ง",
-                "Light drizzle": "ฝนละอองเบา",
-                "Patchy light rain": "มีฝนตกเบาบางแห่ง",
-                "Light rain": "ฝนตกเบา",
-                "Moderate rain at times": "ฝนตกปานกลางเป็นครั้งคราว",
-                "Moderate rain": "ฝนตกปานกลาง",
-                "Heavy rain at times": "ฝนตกหนักเป็นครั้งคราว",
-                "Heavy rain": "ฝนตกหนัก",
-                "Patchy light snow": "มีหิมะตกเบาบางแห่ง",
-                "Light snow": "หิมะตกเบา",
-                "Patchy moderate snow": "มีหิมะตกปานกลางบางแห่ง",
-                "Moderate snow": "หิมะตกปานกลาง",
-                "Heavy snow": "หิมะตกหนัก",
-                
-                // Thunderstorm conditions
-                "Thundery outbreaks in nearby": "มีพายุฝนฟ้าคะนองใกล้เคียง",
-                "Patchy light rain with thunder": "มีฝนตกเบาบางพร้อมฟ้าคะนองบางแห่ง",
-                "Moderate or heavy rain with thunder": "ฝนตกปานกลางถึงหนักพร้อมฟ้าคะนอง",
-                
-                // Fog conditions
-                "Mist": "มีหมอกบาง",
-                "Fog": "มีหมอก",
-                "Freezing fog": "หมอกเยือกแข็ง",
-                
-                // Other conditions
-                "Blowing snow": "หิมะพัดแรง",
-                "Blizzard": "พายุหิมะ",
-                "Ice pellets": "ลูกเห็บ",
-                "Light rain shower": "ฝนตกเป็นหย่อมๆ ปริมาณเบา",
-                "Moderate or heavy rain shower": "ฝนตกเป็นหย่อมๆ ปริมาณปานกลางถึงหนัก",
-                "Light snow showers": "หิมะตกเป็นหย่อมๆ ปริมาณเบา",
-                "Moderate or heavy snow showers": "หิมะตกเป็นหย่อมๆ ปริมาณปานกลางถึงหนัก"
-            };
-            
-            return translations[condition] || condition; // Return Thai translation or original if not found
-        }
-
         function setupEventListeners() { provinceSelect.addEventListener('change', fetchWeatherData); hourlyBtn.addEventListener('click', () => { forecastType = 'hourly'; hourlyBtn.classList.add('active'); dailyBtn.classList.remove('active'); fetchWeatherData(); }); dailyBtn.addEventListener('click', () => { forecastType = 'daily'; dailyBtn.classList.add('active'); hourlyBtn.classList.remove('active'); fetchWeatherData(); }); }
         
         function initializeApp() { populateProvinces(); setupEventListeners(); fetchWeatherData(); }
