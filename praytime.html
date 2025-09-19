@@ -173,13 +173,13 @@
                     description: "เทศกาลแห่งการเชือดกุรบานีและการฮัจญ์"
                 },
                 {
-                    name: "วันเกิดพ่อ",
+                    name: "วันเกิดป๊ะ",
                     date: new Date(currentDate.getFullYear(), 8, 17), // September 17
                     description: "วันสำคัญในครอบครัว",
                     isBirthday: true
                 },
                 {
-                    name: "วันเกิดแม่",
+                    name: "วันเกิดม๊ะ",
                     date: new Date(currentDate.getFullYear(), 11, 1), // December 1
                     description: "วันสำคัญในครอบครัว",
                     isBirthday: true
@@ -208,7 +208,13 @@
                 let countdownText = '';
                 if (item.isBirthday) {
                     if (daysLeft === 0) {
-                        countdownText = '<span class="text-green-600 font-bold">วันนี้เป็นวันเกิดพ่อ!</span>';
+                        if (item.name === "วันเกิดป๊ะ") {
+                            countdownText = '<span class="text-green-600 font-bold">วันนี้เป็นวันเกิดป๊ะ!</span>';
+                        } else if (item.name === "วันเกิดม๊ะ") {
+                            countdownText = '<span class="text-green-600 font-bold">วันนี้เป็นวันเกิดม๊ะ!</span>';
+                        } else {
+                            countdownText = '<span class="text-green-600 font-bold">วันนี้เป็นวันเกิด!</span>';
+                        }
                     } else if (daysLeft < 0) {
                         // Birthday has passed this year, calculate for next year
                         const nextYearBirthday = new Date(item.date);
