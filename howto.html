@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>วิธีการใช้งาน - อัลกุรอ่านของฉัน Quran Wetsiri</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Prompt', sans-serif; background-color: #f8fafc; }
+        .dark body { background-color: #111827; color: #d1d5db; }
+        .instruction-card { background-color: white; border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); border-left: 8px solid #14b8a6; transition: all 0.3s ease; }
+        .instruction-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.15); }
+        .dark .instruction-card { background-color: #1f2937; border-left-color: #2dd4bf; }
+        .instruction-card h3 { font-size: 1.75rem; font-weight: 700; color: #0f766e; margin-bottom: 1.25rem; }
+        .dark .instruction-card h3 { color: #2dd4bf; }
+        .instruction-card p, .instruction-card li { font-size: 1.15rem; line-height: 1.9; color: #374151; }
+        .dark .instruction-card p, .dark .instruction-card li { color: #d1d5db; }
+        .instruction-image { width: 100%; border-radius: 0.5rem; border: 1px solid #d1d5db; margin-top: 1rem; margin-bottom: 1rem; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); }
+        .dark .instruction-image { border-color: #4b5563; }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        <div id="main-header"></div>
+        <div id="navbar-container"></div>
+        <main>
+            <section class="instruction-card">
+                <h3>1. ส่วนควบคุมหลัก (ตัวเลือกการแสดงผล)</h3>
+                <p>กล่องควบคุมนี้เป็นหัวใจหลักในการเลือกสิ่งที่คุณต้องการอ่านและฟัง ประกอบด้วย:</p>
+                <img src="https://i.postimg.cc/4NRZ6D75/Screenshot-2025-09-19-142940.png" alt="ส่วนควบคุมหลัก" class="instruction-image">
+                <ul class="list-disc list-inside space-y-2 mt-4">
+                    <li><strong>ซูเราะฮ์ (บท):</strong> ใช้สำหรับเลือกบทที่ต้องการอ่าน</li>
+                    <li><strong>ฉบับคำแปล:</strong> เลือกสำนวนคำแปลภาษาไทยที่ต้องการ</li>
+                    <li><strong>นักอ่าน (Qari):</strong> เลือกเสียงนักอ่านอัลกุรอานที่ท่านชื่นชอบ</li>
+                </ul>
+            </section>
+            <section class="instruction-card">
+                <h3>2. การเล่นเสียง</h3>
+                <p>ท่านสามารถเลือกฟังเสียงอ่านได้ 2 รูปแบบ:</p>
+                <h4 class="text-lg font-semibold mt-4 text-gray-700 dark:text-gray-300">ก. เล่นต่อเนื่องทั้งซูเราะฮ์</h4>
+                <p>กดที่ปุ่มสีเขียวขนาดใหญ่ที่มีข้อความว่า <strong>"เล่นเสียงทั้งซูเราะฮ์"</strong> เพื่อเริ่มฟังเสียงอ่านตั้งแต่ต้นบทไปจนจบอย่างต่อเนื่อง</p>
+                <img src="https://i.postimg.cc/FKHTyrXw/Screenshot-2025-09-19-143302.png" alt="ปุ่มเล่นเสียงทั้งซูเราะฮ์" class="instruction-image">
+                <h4 class="text-lg font-semibold mt-6 text-gray-700 dark:text-gray-300">ข. เล่นเสียงเฉพาะอายะฮ์</h4>
+                <p>หากต้องการฟังเฉพาะอายะฮ์ (ประโยค) ใดเป็นพิเศษ ให้กดที่ <strong>ปุ่มรูปสามเหลี่ยม (Play)</strong> ที่อยู่ทางด้านขวาของอายะฮ์นั้นๆ</p>
+                <img src="https://i.postimg.cc/5Nm5nhgJ/Screenshot-2025-09-19-143405.png" alt="ปุ่มเล่นเสียงเฉพาะอายะฮ์" class="instruction-image">
+            </section>
+            <section class="instruction-card">
+                <h3>3. การปรับขนาดตัวอักษรและโหมดสี</h3>
+                <p>ท่านสามารถปรับขนาดตัวอักษรได้จากส่วนควบคุม และเปิด/ปิด Dark Mode ได้จากปุ่มบนแถบเมนูหลัก (Navigation Bar)</p>
+            </section>
+            <section class="instruction-card">
+                <h3>4. การซ่อน/แสดงเมนูตัวเลือก</h3>
+                <p>เพื่อให้มีพื้นที่ในการอ่านมากขึ้น ท่านสามารถซ่อนกล่อง "ตัวเลือกการแสดงผล" ทั้งหมดได้โดยกดที่ปุ่ม <strong>"ซ่อนตัวเลือก"</strong> และกดอีกครั้งที่ปุ่ม <strong>"แสดงตัวเลือก"</strong> เพื่อให้เมนูกลับมาเหมือนเดิม</p>
+                <img src="https://i.postimg.cc/X7Dqjx7F/Screenshot-2025-09-19-143557.png" alt="ปุ่มซ่อนแสดงเมนู" class="instruction-image">
+            </section>
+        </main>
+        <div id="main-footer"></div>
+    </div>
+    <script src="layout.js"></script>
+    <script>applyLayout('วิธีการใช้งาน', 'howto.html');</script>
+</body>
+</html>

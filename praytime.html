@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เวลาละหมาด - อัลกุรอ่านของฉัน Quran Wetsiri</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        body { font-family: 'Prompt', sans-serif; background-color: #f0f9ff; }
+        .prayer-time-card { background: white; border-radius: 1rem; padding: 1.5rem; text-align: center; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); transition: all 0.3s ease; border-top: 4px solid #0ea5e9; }
+        .prayer-time-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.15), 0 8px 10px -6px rgb(0 0 0 / 0.15); }
+        .prayer-time-name { font-weight: 700; font-size: 1.3rem; color: #0369a1; margin-bottom: 0.5rem; }
+        .prayer-time-value { font-weight: 600; font-size: 2.5rem; color: #020617; margin-top: 0.5rem; }
+        .loader { border: 8px solid #f3f3f3; border-top: 8px solid #0ea5e9; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 2rem auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse { 0% { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1); } 50% { box-shadow: 0 10px 25px -3px rgb(2, 132, 199 / 0.3), 0 4px 10px -2px rgb(2, 132, 199 / 0.2); } 100% { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1); } }
+        .current-prayer-time { background: linear-gradient(135deg, #e0f2fe 0%, #cffafe 100%); transform: translateY(-8px); border-top-color: #0284c7; animation: pulse 2s infinite; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.15), 0 8px 10px -6px rgb(0 0 0 / 0.15); }
+        .dark body { background-color: #111827; color: #d1d5db; }
+        .dark .bg-white { background-color: #1f2937; border-color: #374151; }
+        .dark .text-gray-900 { color: #f9fafb; }
+        .dark .text-gray-700 { color: #d1d5db; }
+        .dark .text-gray-600 { color: #9ca3af; }
+        .dark .text-sky-800 { color: #38bdf8; }
+        .dark .text-sky-700 { color: #7dd3fc; }
+        .dark .prayer-time-card { background: #1f2937; border-top-color: #38bdf8; }
+        .dark .prayer-time-name { color: #7dd3fc; }
+        .dark .prayer-time-value { color: #f9fafb; }
+        .dark .current-prayer-time { background-color: #0c4a6e; border-top-color: #f0f9ff; }
+        .dark #date-input, .dark #location-select { background-color: #374151; border-color: #4b5563; color: #f9fafb; }
+        .dark .flatpickr-calendar { background: #1f2937; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        .dark .flatpickr-day { color: #d1d5db; }
+        .dark .flatpickr-day:hover, .dark .flatpickr-day:focus { background: #374151; }
+        .dark .flatpickr-day.selected, .dark .flatpickr-day.startRange, .dark .flatpickr-day.endRange { background: #0284c7; border-color: #0284c7; }
+        .dark .flatpickr-month, .dark .flatpickr-weekday, .dark .numInput, .dark .flatpickr-current-month { color: #f9fafb; }
+        .dark .flatpickr-time input:hover, .dark .numInputWrapper:hover, .dark .arrowUp:hover, .dark .arrowDown:hover { background: #374151; }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto p-4 md:p-8 max-w-5xl">
+        <div id="main-header"></div>
+        <div id="navbar-container"></div>
+        <div class="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-200">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                <div><label for="location-select" class="block text-md font-medium text-gray-700 mb-2">เลือกสถานที่</label><select id="location-select" class="w-full text-lg p-3 border border-gray-300 rounded-md shadow-sm"></select></div>
+                <div><label for="date-input" class="block text-md font-medium text-gray-700 mb-2">เลือกวันที่</label><input type="text" id="date-input" class="w-full text-lg p-3 border border-gray-300 rounded-md shadow-sm" placeholder="กรุณาเลือกวันที่..."></div>
+                <div><label class="block text-md font-medium text-gray-700 mb-2 invisible">วันนี้</label><button id="today-btn" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-4 rounded-md shadow-sm transition-colors">วันนี้</button></div>
+            </div>
+        </div>
+        <main id="results-area"><div id="loading-indicator" class="hidden"><div class="loader"></div></div><div id="error-message" class="text-center p-8 bg-red-100 text-red-700 rounded-lg hidden"></div><div id="results-content" class="hidden"><div class="text-center mb-6 bg-white p-6 rounded-lg shadow-md"><h2 id="result-header" class="text-2xl font-bold text-sky-700"></h2><p id="result-date-hijri" class="text-gray-600 text-lg"></p><div class="mt-4 pt-4 border-t border-gray-200"><p id="daily-tidbit" class="text-sky-800 italic text-left"></p></div></div><div id="prayer-times-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6"></div>
+        
+        <!-- Important Dates Dashboard -->
+        <div id="important-dates-dashboard" class="mt-8 bg-white p-6 rounded-xl shadow-lg">
+            <h3 class="text-2xl font-bold text-sky-800 mb-4 text-center">วันสำคัญและนับถอยหลัง</h3>
+            <div id="important-dates-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Important dates will be populated here by JavaScript -->
+            </div>
+        </div>
+        </div></main>
+        <div id="main-footer"></div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/th.js"></script>
+    <script src="layout.js"></script>
+    <script>
+        applyLayout('เวลาละหมาด', 'praytime.html');
+        const locationSelect = document.getElementById('location-select');
+        const dateInput = document.getElementById('date-input');
+        const todayBtn = document.getElementById('today-btn'); // Add today button
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const errorMessage = document.getElementById('error-message');
+        const resultsContent = document.getElementById('results-content');
+        const resultHeader = document.getElementById('result-header');
+        const resultDateHijri = document.getElementById('result-date-hijri');
+        const prayerTimesGrid = document.getElementById('prayer-times-grid');
+        const dailyTidbit = document.getElementById('daily-tidbit');
+        let currentTimings = null;
+        let prayerTimeInterval = null;
+        const thaiProvinces = [ { thai: "กรุงเทพมหานคร", english: "Bangkok" }, { thai: "กระบี่", english: "Krabi" }, { thai: "กาญจนบุรี", english: "Kanchanaburi" }, { thai: "กาฬสินธุ์", english: "Kalasin" }, { thai: "กำแพงเพชร", english: "Kamphaeng Phet" }, { thai: "ขอนแก่น", english: "Khon Kaen" }, { thai: "จันทบุรี", english: "Chanthaburi" }, { thai: "ฉะเชิงเทรา", english: "Chachoengsao" }, { thai: "ชลบุรี", english: "Chonburi" }, { thai: "ชัยนาท", english: "Chai Nat" }, { thai: "ชัยภูมิ", english: "Chaiyaphum" }, { thai: "ชุมพร", english: "Chumphon" }, { thai: "เชียงราย", english: "Chiang Rai" }, { thai: "เชียงใหม่", english: "Chiang Mai" }, { thai: "ตรัง", english: "Trang" }, { thai: "ตราด", english: "Trat" }, { thai: "ตาก", english: "Tak" }, { thai: "นครนายก", english: "Nakhon Nayok" }, { thai: "นครปฐม", english: "Nakhon Pathom" }, { thai: "นครพนม", english: "Nakhon Phanom" }, { thai: "นครราชสีมา", english: "Nakhon Ratchasima" }, { thai: "นครศรีธรรมราช", english: "Nakhon Si Thammarat" }, { thai: "นครสวรรค์", english: "Nakhon Sawan" }, { thai: "นนทบุรี", english: "Nonthaburi" }, { thai: "นราธิวาส", english: "Narathiwat" }, { thai: "น่าน", english: "Nan" }, { thai: "บึงกาฬ", english: "Bueng Kan" }, { thai: "บุรีรัมย์", english: "Buriram" }, { thai: "ปทุมธานี", english: "Pathum Thani" }, { thai: "ประจวบคีรีขันธ์", english: "Prachuap Khiri Khan" }, { thai: "ปราจีนบุรี", english: "Prachinburi" }, { thai: "ปัตตานี", english: "Pattani" }, { thai: "พระนครศรีอยุธยา", english: "Phra Nakhon Si Ayutthaya" }, { thai: "พะเยา", english: "Phayao" }, { thai: "พังงา", english: "Phang Nga" }, { thai: "พัทลุง", english: "Phatthalung" }, { thai: "พิจิตร", english: "Phichit" }, { thai: "พิษณุโลก", english: "Phitsanulok" }, { thai: "เพชรบุรี", english: "Phetchaburi" }, { thai: "เพชรบูรณ์", english: "Phetchabun" }, { thai: "แพร่", english: "Phrae" }, { thai: "ภูเก็ต", english: "Phuket" }, { thai: "มหาสารคาม", english: "Maha Sarakham" }, { thai: "มุกดาหาร", english: "Mukdahan" }, { thai: "แม่ฮ่องสอน", english: "Mae Hong Son" }, { thai: "ยโสธร", english: "Yasothon" }, { thai: "ยะลา", english: "Yala" }, { thai: "ร้อยเอ็ด", english: "Roi Et" }, { thai: "ระนอง", english: "Ranong" }, { thai: "ระยอง", english: "Rayong" }, { thai: "ราชบุรี", english: "Ratchaburi" }, { thai: "ลพบุรี", english: "Lopburi" }, { thai: "ลำปาง", english: "Lampang" }, { thai: "ลำพูน", english: "Lamphun" }, { thai: "เลย", english: "Loei" }, { thai: "ศรีสะเกษ", english: "Sisaket" }, { thai: "สกลนคร", english: "Sakon Nakhon" }, { thai: "สงขลา", english: "Songkhla" }, { thai: "สตูล", english: "Satun" }, { thai: "สมุทรปราการ", english: "Samut Prakan" }, { thai: "สมุทรสงคราม", english: "Samut Songkhram" }, { thai: "สมุทรสาคร", english: "Samut Sakhon" }, { thai: "สระแก้ว", english: "Sa Kaeo" }, { thai: "สระบุรี", english: "Saraburi" }, { thai: "สิงห์บุรี", english: "Sing Buri" }, { thai: "สุโขทัย", english: "Sukhothai" }, { thai: "สุพรรณบุรี", english: "Suphan Buri" }, { thai: "สุราษฎร์ธานี", english: "Surat Thani" }, { thai: "สุรินทร์", english: "Surin" }, { thai: "หนองคาย", english: "Nong Khai" }, { thai: "หนองบัวลำภู", english: "Nong Bua Lamphu" }, { thai: "อ่างทอง", english: "Ang Thong" }, { thai: "อำนาจเจริญ", english: "Amnat Charoen" }, { thai: "อุดรธานี", english: "Udon Thani" }, { thai: "อุตรดิตถ์", english: "Uttaradit" }, { thai: "อุทัยธานี", english: "Uthai Thani" }, { thai: "อุบลราชธานี", english: "Ubon Ratchathani" } ];
+        const worldCities = [ { thai: "เมกกะ", english: "Makkah", country: "Saudi Arabia" }, { thai: "เมดินา", english: "Madinah", country: "Saudi Arabia" }, { thai: "เยรูซาเล็ม", english: "Jerusalem", country: "Palestine" }, { thai: "จาการ์ตา", english: "Jakarta", country: "Indonesia" }, { thai: "กัวลาลัมเปอร์", english: "Kuala Lumpur", country: "Malaysia" }, { thai: "สิงคโปร์", english: "Singapore", country: "Singapore" }, { thai: "ดูไบ", english: "Dubai", country: "United Arab Emirates" }, { thai: "เดลี", english: "Delhi", country: "India" }, { thai: "โตเกียว", english: "Tokyo", country: "Japan" }, { thai: "ปักกิ่ง", english: "Beijing", country: "China" }, { thai: "อิสตันบูล", english: "Istanbul", country: "Turkey" }, { thai: "มอสโก", english: "Moscow", country: "Russia" }, { thai: "ลอนดอน", english: "London", country: "United Kingdom" }, { thai: "ปารีส", english: "Paris", country: "France" }, { thai: "เบอร์ลิน", english: "Berlin", country: "Germany" }, { thai: "ไคโร", english: "Cairo", country: "Egypt" }, { thai: "เคปทาวน์", english: "Cape Town", country: "South Africa" }, { thai: "นิวยอร์ก", english: "New York", country: "USA" }, { thai: "ลอสแอนเจลิส", english: "Los Angeles", country: "USA" }, { thai: "โทรอนโต", english: "Toronto", country: "Canada" }, { thai: "เซาเปาลู", english: "São Paulo", country: "Brazil" }, { thai: "ซิดนีย์", english: "Sydney", country: "Australia" } ];
+        const hijriMonthsThai = { "Muḥarram": "มุฮัรรอม", "Ṣafar": "ซอฟัร", "Rabīʿ al-awwal": "เราะบีอุลเอาวัล", "Rabīʿ al-thānī": "เราะบีอุษษานี", "Jumādá al-ūlá": "ญุมาดัลอูลา", "Jumādá al-ākhirah": "ญุมาดัลอาคิเราะฮ์", "Rajab": "เราะญับ", "Shaʿbān": "ชะอ์บาน", "Ramaḍān": "รอมฎอน", "Shawwāl": "เชาวาล", "Dhū al-Qaʿdah": "ซุลกิอฺดะฮ์", "Dhū al-Ḥijjah": "ซุลฮิจญะฮ์" };
+        const islamicCalendarInfo = { 1: { general: "เดือนมุฮัรรอม: เป็นหนึ่งในสี่เดือนต้องห้ามและถูกขนานนามว่า 'เดือนของอัลลอฮ์' การถือศีลอดในเดือนนี้มีความประเสริฐอย่างยิ่ง", days: { 10: "วันอาชูรออ์: วันที่อัลลอฮ์ทรงช่วยเหลือนบีมูซาให้รอดพ้นจากฟิรเอาน์ การถือศีลอดในวันนี้และวันก่อนหน้า (ตาสุอาอ์) จะได้รับการลบล้างบาปเล็กๆ น้อยๆ ในปีที่ผ่านมา" } }, 2: { general: "เดือนซอฟัร: อิสลามปฏิเสธความเชื่องมงายที่ว่านี่เป็นเดือนแห่งโชคร้าย และยืนยันว่าทุกสิ่งเกิดขึ้นด้วยพระประสงค์ของอัลลอฮ์เท่านั้น" }, 3: { general: "เดือนเราะบีอุลเอาวัล: เดือนแห่งการประสูติของท่านศาสดามุฮัมมัด (ศ็อลฯ) ซึ่งเป็นความเมตตาอันยิ่งใหญ่ต่อมวลมนุษยชาติ", days: { 12: "วันเมาลิดินนบี (ตามทัศนะส่วนใหญ่): วันแห่งการรำลึกถึงชีวประวัติและคุณูปการของท่านนบีมุฮัมมัด (ศ็อลฯ)" } }, 7: { general: "เดือนเราะญับ: เป็นหนึ่งในสี่เดือนต้องห้าม ส่งเสริมให้มุ่งเน้นการปฏิบัติศาสนกิจและใคร่ครวญทางจิตวิญญาณ", days: { 27: "ค่ำคืนแห่งอิสรออ์และมิอ์รอจญ์ (ตามทัศนะส่วนใหญ่): รำลึกถึงการเดินทางยามราตรีและการขึ้นสู่ฟากฟ้าของท่านนบี ซึ่งเป็นที่มาของบัญญัติละหมาด 5 เวลา" } }, 8: { general: "เดือนชะอ์บาน: เป็นเดือนที่การงานต่างๆ ในรอบปีจะถูกนำเสนอต่ออัลลอฮ์ และเป็นช่วงเวลาเตรียมความพร้อมทั้งร่างกายและจิตใจเพื่อต้อนรับเดือนรอมฎอน", days: { 15: "นิสฟูชะอ์บาน: ค่ำคืนแห่งการให้อภัย ซึ่งอัลลอฮ์จะทรงประทานความเมตตาแก่บ่าวของพระองค์" } }, 9: { general: "เดือนรอมฎอน: เดือนอันประเสริฐที่คัมภีร์อัลกุรอานได้ถูกประทานลงมา เป็นเดือนแห่งการถือศีลอดเพื่อชำระล้างจิตวิญญาณและบรรลุถึงความยำเกรง (ตักวา)", special: "ช่วงสิบคืนสุดท้ายของรอมฎอน: เป็นช่วงเวลาที่ประเสริฐที่สุดของเดือน ส่งเสริมให้ทำอิบาดะฮ์อย่างเข้มข้นเพื่อแสวงหาค่ำคืน 'ลัยละตุลก็อดรฺ' ที่ดียิ่งกว่าหนึ่งพันเดือน" }, 10: { general: "เดือนเชาวาล: ส่งเสริมให้ถือศีลอดสุนัต (โดยสมัครใจ) อีก 6 วัน ซึ่งจะได้รับผลบุญเทียบเท่าการถือศีลอดตลอดทั้งปี", days: { 1: "วันอีดิลฟิฏริ: เทศกาลแห่งการเฉลิมฉลองการสิ้นสุดเดือนรอมฎอน เป็นวันแห่งความสุข การให้อภัย และการฟื้นฟูความสัมพันธ์ในสังคม" } }, 11: { general: "เดือนซุลกิอฺดะฮ์: เป็นหนึ่งในสี่เดือนต้องห้าม และเป็นช่วงเวลาแห่งการเตรียมตัวเดินทางสู่มักกะฮ์เพื่อประกอบพิธีฮัจญ์อย่างสันติ" }, 12: { general: "สิบวันแรกของซุลฮิจญะฮ์: เป็นช่วงเวลาที่ประเสริฐที่สุดของปี การประกอบคุณงามความดีในช่วงนี้เป็นที่รักยิ่ง ณ อัลลอฮ์", days: { 9: "วันอะเราะฟะฮ์: วันสุดยอดของพิธีฮัจญ์ สำหรับผู้ที่ไม่ได้ไปฮัจญ์ การถือศีลอดในวันนี้จะได้รับการลบล้างบาปของปีที่ผ่านมาและปีที่จะมาถึง", 10: "วันอีดิลอัฎฮา: เทศกาลแห่งการเชือดพลี เพื่อรำลึกถึงความเสียสละของนบีอิบรอฮีม เป็นวันแห่งการแบ่งปันแก่ครอบครัว เพื่อนบ้าน และผู้ยากไร้", 11: "วันตัชรีก: วันที่ 11, 12, 13 เป็นวันแห่งการกินดื่มและรำลึกถึงอัลลอฮ์ ต่อเนื่องจากการเฉลิมฉลองวันอีดิลอัฎฮา", 12: "วันตัชรีก: วันที่ 11, 12, 13 เป็นวันแห่งการกินดื่มและรำลึกถึงอัลลอฮ์ ต่อเนื่องจากการเฉลิมฉลองวันอีดิลอัฎฮา", 13: "วันตัชรีก: วันที่ 11, 12, 13 เป็นวันแห่งการกินดื่มและรำลึกถึงอัลลอฮ์ ต่อเนื่องจากการเฉลิมฉลองวันอีดิลอัฎฮา" } } };
+        const generalTidbits = [ "การละหมาดคือการพักผ่อนของหัวใจ", "จงขอความช่วยเหลือด้วยความอดทนและการละหมาด", "แท้จริง การรำลึกถึงอัลลอฮ์นั้น ทำให้หัวใจสงบ", "ความดีที่ยิ่งใหญ่ที่สุด คือการมีมารยาทที่ดีงาม", "การให้อภัยคือการแก้แค้นที่ดีที่สุด", "จงพูดจาดีต่อกัน เพราะคำพูดที่ดีคือศอดะเกาะฮ์ (การให้ทาน)", "ผู้ใดขอบคุณมนุษย์ ก็เท่ากับเขาได้ขอบคุณอัลลอฮ์", "รอยยิ้มที่ท่านมีให้พี่น้องของท่าน คือ ศอดะเกาะฮ์", "ความสะอาดเป็นส่วนหนึ่งของการศรัทธา", "จงแสวงหาความรู้ตั้งแต่อยู่ในเปลจนถึงหลุมฝังศพ" ];
+        function populateLocations() { 
+            locationSelect.innerHTML = ''; 
+            const thaiGroup = document.createElement('optgroup'); 
+            thaiGroup.label = 'จังหวัดในประเทศไทย'; 
+            thaiProvinces.sort((a, b) => a.thai.localeCompare(b.thai, 'th')); 
+            thaiProvinces.forEach(province => { 
+                const option = document.createElement('option'); 
+                option.value = `${province.english},Thailand`; 
+                option.textContent = province.thai; 
+                if (province.thai === 'สตูล') {  // Changed from Bangkok to Satun
+                    option.selected = true; 
+                }
+                thaiGroup.appendChild(option); 
+            }); 
+            locationSelect.appendChild(thaiGroup); 
+            const worldGroup = document.createElement('optgroup'); 
+            worldGroup.label = 'เมืองสำคัญทั่วโลก'; 
+            worldCities.sort((a, b) => a.thai.localeCompare(b.thai, 'th')); 
+            worldCities.forEach(city => { 
+                const option = document.createElement('option'); 
+                option.value = `${city.english},${city.country}`; 
+                option.textContent = `${city.thai} (${city.country})`; 
+                worldGroup.appendChild(option); 
+            }); 
+            locationSelect.appendChild(worldGroup); 
+        }
+        function showLoading(isLoading) { loadingIndicator.classList.toggle('hidden', !isLoading); if (isLoading) { resultsContent.classList.add('hidden'); errorMessage.classList.add('hidden'); } }
+        function showError(message) { errorMessage.textContent = message; errorMessage.classList.remove('hidden'); showLoading(false); }
+        async function fetchPrayerTimes() { if (prayerTimeInterval) clearInterval(prayerTimeInterval); const locationValue = locationSelect.value; const selectedLocationText = locationSelect.options[locationSelect.selectedIndex].text; const dateValue = dateInput.value; if (!locationValue || !dateValue) { showError("กรุณาเลือกสถานที่และวันที่"); return; } const [city, country] = locationValue.split(','); const [year, month, day] = dateValue.split('-'); const formattedDateForAPI = `${day}-${month}-${year}`; showLoading(true); const url = `https://api.aladhan.com/v1/timingsByCity?city=${city}&country=${country}&method=4&date=${formattedDateForAPI}`; try { const response = await fetch(url); if (!response.ok) throw new Error(`ไม่สามารถดึงข้อมูลได้ (HTTP status: ${response.status})`); const data = await response.json(); if (data.code === 200) { displayPrayerTimes(data.data, selectedLocationText, dateValue); } else { throw new Error(data.data || "API คืนค่าข้อผิดพลาด"); } } catch (error) { console.error('Error fetching prayer times:', error); showError(`เกิดข้อผิดพลาด: ${error.message} กรุณาลองใหม่อีกครั้ง`); } finally { showLoading(false); } }
+        function highlightCurrentPrayerTime() { if (!currentTimings || dateInput.value !== new Date().toISOString().split('T')[0]) { document.querySelectorAll('.prayer-time-card').forEach(card => card.classList.remove('current-prayer-time')); return; } const now = new Date(); const nowInMinutes = now.getHours() * 60 + now.getMinutes(); const prayerOrderForLogic = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']; const prayerTimesInMinutes = prayerOrderForLogic.map(prayer => { if (!currentTimings[prayer]) return null; const [hour, minute] = currentTimings[prayer].split(':'); return { name: prayer, minutes: parseInt(hour, 10) * 60 + parseInt(minute, 10) }; }).filter(p => p); let currentPrayerName = null; for (let i = prayerTimesInMinutes.length - 1; i >= 0; i--) { if (nowInMinutes >= prayerTimesInMinutes[i].minutes) { currentPrayerName = prayerTimesInMinutes[i].name; break; } } if (currentPrayerName === null) { currentPrayerName = 'Isha'; } document.querySelectorAll('.prayer-time-card').forEach(card => { card.classList.remove('current-prayer-time'); }); const currentCard = document.querySelector(`[data-prayer="${currentPrayerName}"]`); if (currentCard) { currentCard.classList.add('current-prayer-time'); } }
+
+        // Function to calculate days until a future date
+        function daysUntil(targetDate, currentDate) {
+            const target = new Date(targetDate);
+            const current = new Date(currentDate);
+            // Reset time part to compare only dates
+            target.setHours(0, 0, 0, 0);
+            current.setHours(0, 0, 0, 0);
+            const diffTime = target - current;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays;
+        }
+
+        // Function to display important dates and countdowns
+        function displayImportantDates(currentDate, hijriDate) {
+            const importantDatesContainer = document.getElementById('important-dates-container');
+            if (!importantDatesContainer) return;
+
+            // Calculate next Ramadan (9th month of Hijri calendar)
+            // For simplicity, we'll estimate it based on a 354-day year
+            const hijriYear = parseInt(hijriDate.year);
+            const currentHijriMonth = hijriDate.month.number;
+            
+            // Calculate next Ramadan start
+            let nextRamadanYear = hijriYear;
+            let monthsUntilRamadan = 9 - currentHijriMonth;
+            if (monthsUntilRamadan <= 0) {
+                monthsUntilRamadan += 12;
+                nextRamadanYear += 1;
+            }
+            
+            // Estimate the Gregorian date for next Ramadan (approximate)
+            const daysUntilRamadan = Math.round(monthsUntilRamadan * 29.5); // Average Hijri month length
+            const nextRamadanDate = new Date(currentDate);
+            nextRamadanDate.setDate(currentDate.getDate() + daysUntilRamadan);
+            
+            // Calculate next Eid al-Adha (10th of Dhul Hijjah)
+            // Approximately 70 days after Ramadan ends
+            const nextEidAlAdhaDate = new Date(nextRamadanDate);
+            nextEidAlAdhaDate.setDate(nextRamadanDate.getDate() + 70);
+            
+            // Important dates including personal family dates
+            const importantDates = [
+                {
+                    name: "วันเริ่มต้นถือศีลอด (รอมฎอน)",
+                    date: nextRamadanDate,
+                    description: "เดือนศักดิ์สิทธิ์แห่งการถือศีลอดและการเสวยพระธรรม"
+                },
+                {
+                    name: "วันอีดิลฟิฏริ",
+                    date: new Date(nextRamadanDate.getTime() + 30 * 24 * 60 * 60 * 1000), // Approx 30 days after Ramadan
+                    description: "เทศกาลแห่งการเฉลิมฉลองการสิ้นสุดเดือนรอมฎอน"
+                },
+                {
+                    name: "วันอีดิลอัฎฮา",
+                    date: nextEidAlAdhaDate,
+                    description: "เทศกาลแห่งการเชือดกุรบานีและการฮัจญ์"
+                },
+                {
+                    name: "วันเกิดพ่อ",
+                    date: new Date(currentDate.getFullYear(), 8, 17), // September 17
+                    description: "วันสำคัญในครอบครัว",
+                    isBirthday: true
+                },
+                {
+                    name: "วันเกิดแม่",
+                    date: new Date(currentDate.getFullYear(), 11, 1), // December 1
+                    description: "วันสำคัญในครอบครัว",
+                    isBirthday: true
+                },
+                {
+                    name: "วันอาชูรออ์",
+                    date: new Date(currentDate.getFullYear(), 0, 10), // Approximate, usually in Muharram
+                    description: "วันที่อัลลอฮ์ทรงช่วยเหลือนบีมูซาให้รอดพ้นจากฟิรเอาน์"
+                }
+            ];
+
+            // Clear container
+            importantDatesContainer.innerHTML = '';
+
+            // Display each important date
+            importantDates.forEach(item => {
+                const daysLeft = daysUntil(item.date, currentDate);
+                const dateString = item.date.toLocaleDateString('th-TH', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    weekday: 'long'
+                });
+
+                // For birthdays, don't show "วันนี้เป็นวันสำคัญ!" message
+                let countdownText = '';
+                if (item.isBirthday) {
+                    if (daysLeft === 0) {
+                        countdownText = '<span class="text-green-600 font-bold">วันนี้เป็นวันเกิดพ่อ!</span>';
+                    } else if (daysLeft < 0) {
+                        // Birthday has passed this year, calculate for next year
+                        const nextYearBirthday = new Date(item.date);
+                        nextYearBirthday.setFullYear(currentDate.getFullYear() + 1);
+                        const daysUntilNext = daysUntil(nextYearBirthday, currentDate);
+                        countdownText = `อีก ${daysUntilNext} วัน`;
+                    } else {
+                        countdownText = `อีก ${daysLeft} วัน`;
+                    }
+                } else {
+                    countdownText = daysLeft <= 0 ? '<span class="text-green-600 font-bold">วันนี้เป็นวันสำคัญ!</span>' : `อีก ${Math.abs(daysLeft)} วัน`;
+                }
+
+                const dateCard = document.createElement('div');
+                dateCard.className = 'bg-gradient-to-br from-sky-50 to-blue-50 p-4 rounded-lg border-l-4 border-sky-500 shadow-sm';
+                dateCard.innerHTML = `
+                    <h4 class="font-bold text-lg text-sky-800">${item.name}</h4>
+                    <p class="text-gray-600 text-sm mt-1">${item.description}</p>
+                    <div class="mt-3 pt-3 border-t border-gray-200">
+                        <p class="text-gray-700"><span class="font-semibold">วันที่:</span> ${dateString}</p>
+                        <p class="text-lg ${daysLeft <= 0 ? 'text-green-600' : daysLeft <= 30 ? 'text-orange-600' : 'text-sky-700'}">
+                            ${countdownText}
+                        </p>
+                    </div>
+                `;
+                importantDatesContainer.appendChild(dateCard);
+            });
+
+            // Add a card for current Hijri date information
+            const hijriInfoCard = document.createElement('div');
+            hijriInfoCard.className = 'bg-gradient-to-br from-teal-50 to-cyan-50 p-4 rounded-lg border-l-4 border-teal-500 shadow-sm';
+            hijriInfoCard.innerHTML = `
+                <h4 class="font-bold text-lg text-teal-800">ข้อมูลปฏิทินอิสลาม</h4>
+                <p class="text-gray-600 text-sm mt-1">วันที่ปัจจุบันตามปฏิทินอิสลาม</p>
+                <div class="mt-3 pt-3 border-t border-gray-200">
+                    <p class="text-gray-700"><span class="font-semibold">วันที่:</span> ${hijriDate.day} ${hijriMonthsThai[hijriDate.month.en] || hijriDate.month.ar} ${hijriDate.year} ฮ.</p>
+                    <p class="text-gray-700 mt-1"><span class="font-semibold">เดือน:</span> ${hijriMonthsThai[hijriDate.month.en] || hijriDate.month.ar}</p>
+                    <p class="text-gray-700 mt-1"><span class="font-semibold">ปี:</span> ${hijriDate.year} ฮ.</p>
+                </div>
+            `;
+            importantDatesContainer.appendChild(hijriInfoCard);
+        }
+        function displayPrayerTimes(data, locationName, dateValue) { currentTimings = data.timings; const dateObj = new Date(dateValue + 'T00:00:00'); const formattedDate = new Intl.DateTimeFormat('th-TH', { dateStyle: 'full' }).format(dateObj).replace(/^วันที่ /, ''); const hijri = data.date.hijri; const hijriMonthEn = hijri.month.en; const hijriMonthThai = hijriMonthsThai[hijriMonthEn] || hijri.month.ar; const formattedHijriDate = `วันที่ตามปฏิทินอิสลาม: ${hijri.day} ${hijriMonthThai} ${hijri.year}`; resultHeader.textContent = `เวลาละหมาดสำหรับ ${locationName}, ${formattedDate}`; resultDateHijri.textContent = formattedHijriDate; let tidbitText; const monthInfo = islamicCalendarInfo[hijri.month.number]; const hijriDayInt = parseInt(hijri.day, 10); if (monthInfo && monthInfo.days && monthInfo.days[hijriDayInt]) { tidbitText = monthInfo.days[hijriDayInt]; } else if (hijri.month.number === 9 && hijriDayInt > 20) { tidbitText = monthInfo.special; } else { const gregorianDay = dateObj.getDate(); const tidbitIndex = (gregorianDay + hijriDayInt) % generalTidbits.length; tidbitText = generalTidbits[tidbitIndex]; } dailyTidbit.innerHTML = `<strong>เกร็ดความรู้:</strong> ${tidbitText}`; prayerTimesGrid.innerHTML = ''; const prayerOrder = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']; const prayerNamesThai = { Fajr: 'ฟัจร์', Sunrise: 'ตะวันขึ้น', Dhuhr: 'ดุฮ์ริ', Asr: 'อัศริ', Maghrib: 'มัฆริบ', Isha: 'อิชาอ์' }; prayerOrder.forEach(prayerKey => { const time = data.timings[prayerKey]; if (time) { const card = document.createElement('div'); card.className = 'prayer-time-card'; card.setAttribute('data-prayer', prayerKey); card.innerHTML = `<p class="prayer-time-name">${prayerNamesThai[prayerKey]}</p><p class="prayer-time-value">${time}</p>`; prayerTimesGrid.appendChild(card); } }); resultsContent.classList.remove('hidden'); highlightCurrentPrayerTime(); prayerTimeInterval = setInterval(highlightCurrentPrayerTime, 60000); displayImportantDates(dateObj, hijri); }
+        function initializeApp() { populateLocations(); flatpickr("#date-input", { "locale": "th", buddhistEra: true, dateFormat: "Y-m-d", defaultDate: "today" }); fetchPrayerTimes(); locationSelect.addEventListener('change', fetchPrayerTimes); dateInput.addEventListener('change', fetchPrayerTimes); }
+        initializeApp();
+    </script>
+</body>
+</html>

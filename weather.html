@@ -1,0 +1,209 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>พยากรณ์อากาศ - อัลกุรอ่านของฉัน Quran Wetsiri</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Prompt', sans-serif; background-color: #f0f4f8; }
+        .weather-card { background: white; border-radius: 1rem; padding: 1.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); transition: all 0.3s ease; }
+        .weather-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.15), 0 8px 10px -6px rgb(0 0 0 / 0.15); }
+        .tab-button { transition: all 0.3s ease; }
+        .tab-button.active { background: linear-gradient(135deg, #0c4a6e 0%, #0ea5e9 100%); color: white; box-shadow: 0 4px 14px 0 rgb(0 119 255 / 39%); }
+        .loader { border: 8px solid #e5e7eb; border-top: 8px solid #3b82f6; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 2rem auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Dark Mode Overrides */
+        .dark body { background-color: #111827; color: #d1d5db; }
+        .dark .bg-white { background-color: #1f2937; border-color: #374151; }
+        .dark .text-gray-800 { color: #f9fafb; }
+        .dark .text-gray-700 { color: #d1d5db; }
+        .dark .text-gray-600 { color: #9ca3af; }
+        .dark .text-sky-900 { color: #7dd3fc; }
+        .dark .text-sky-800 { color: #38bdf8; }
+        .dark .text-sky-700 { color: #7dd3fc; }
+        .dark .bg-gray-200 { background-color: #374151; }
+        .dark .tab-button.active { background-color: #38bdf8; color: #111827; }
+        .dark .weather-card { background-color: #1f2937; }
+        .dark #province-select { background-color: #374151; border-color: #4b5563; color: #f9fafb; }
+        .dark .text-blue-500 { color: #38bdf8; }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto p-4 md:p-8 max-w-6xl">
+        <div id="main-header"></div>
+        <div id="navbar-container"></div>
+
+        <!-- Controls Section -->
+        <div class="bg-white p-6 rounded-2xl shadow-xl mb-8 border border-gray-200 card">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <div>
+                    <label for="province-select" class="block text-md font-semibold text-gray-700 mb-2">เลือกจังหวัด</label>
+                    <select id="province-select" class="w-full text-lg p-3 border border-gray-300 rounded-xl shadow-sm custom-select"></select>
+                </div>
+                <div class="flex flex-col">
+                     <label class="block text-md font-semibold text-gray-700 mb-2 invisible">รูปแบบพยากรณ์</label>
+                    <div class="flex bg-gray-200 rounded-xl p-1">
+                        <button id="hourly-btn" class="tab-button active w-1/2 p-3 rounded-lg font-semibold transition-all duration-300">รายชั่วโมง</button>
+                        <button id="daily-btn" class="tab-button w-1/2 p-3 rounded-lg font-semibold transition-all duration-300">ล่วงหน้า 3 วัน</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Display -->
+        <main id="results-area">
+            <div id="loading-indicator" class="hidden"><div class="loader"></div></div>
+            <div id="error-message" class="text-center p-8 bg-red-100 text-red-700 rounded-lg hidden"></div>
+            <div id="results-content" class="hidden">
+                <div id="current-weather-card" class="weather-card mb-8"></div>
+                <div id="forecast-section">
+                     <h2 id="forecast-header" class="text-2xl font-bold text-sky-800 mb-4"></h2>
+                     <div id="forecast-grid" class="grid grid-cols-1 gap-4"></div>
+                </div>
+            </div>
+        </main>
+
+        <div id="main-footer"></div>
+    </div>
+
+    <script src="layout.js"></script>
+    <script>
+        applyLayout('พยากรณ์อากาศ', 'weather.html');
+
+        const apiKey = '6d70f8ba56a14a0c9d3143809251909';
+        const provinceSelect = document.getElementById('province-select');
+        const hourlyBtn = document.getElementById('hourly-btn');
+        const dailyBtn = document.getElementById('daily-btn');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const errorMessage = document.getElementById('error-message');
+        const resultsContent = document.getElementById('results-content');
+        const currentWeatherCard = document.getElementById('current-weather-card');
+        const forecastHeader = document.getElementById('forecast-header');
+        const forecastGrid = document.getElementById('forecast-grid');
+        let forecastType = 'hourly';
+
+        const thaiProvinces = [ { thai: "กรุงเทพมหานคร", english: "Bangkok" }, { thai: "กระบี่", english: "Krabi" }, { thai: "กาญจนบุรี", english: "Kanchanaburi" }, { thai: "กาฬสินธุ์", english: "Kalasin" }, { thai: "กำแพงเพชร", english: "Kamphaeng Phet" }, { thai: "ขอนแก่น", english: "Khon Kaen" }, { thai: "จันทบุรี", english: "Chanthaburi" }, { thai: "ฉะเชิงเทรา", english: "Chachoengsao" }, { thai: "ชลบุรี", english: "Chonburi" }, { thai: "ชัยนาท", english: "Chai Nat" }, { thai: "ชัยภูมิ", english: "Chaiyaphum" }, { thai: "ชุมพร", english: "Chumphon" }, { thai: "เชียงราย", english: "Chiang Rai" }, { thai: "เชียงใหม่", english: "Chiang Mai" }, { thai: "ตรัง", english: "Trang" }, { thai: "ตราด", english: "Trat" }, { thai: "ตาก", english: "Tak" }, { thai: "นครนายก", english: "Nakhon Nayok" }, { thai: "นครปฐม", english: "Nakhon Pathom" }, { thai: "นครพนม", english: "Nakhon Phanom" }, { thai: "นครราชสีมา", english: "Nakhon Ratchasima" }, { thai: "นครศรีธรรมราช", english: "Nakhon Si Thammarat" }, { thai: "นครสวรรค์", english: "Nakhon Sawan" }, { thai: "นนทบุรี", english: "Nonthaburi" }, { thai: "นราธิวาส", english: "Narathiwat" }, { thai: "น่าน", english: "Nan" }, { thai: "บึงกาฬ", english: "Bueng Kan" }, { thai: "บุรีรัมย์", english: "Buriram" }, { thai: "ปทุมธานี", english: "Pathum Thani" }, { thai: "ประจวบคีรีขันธ์", english: "Prachuap Khiri Khan" }, { thai: "ปราจีนบุรี", english: "Prachinburi" }, { thai: "ปัตตานี", english: "Pattani" }, { thai: "พระนครศรีอยุธยา", english: "Phra Nakhon Si Ayutthaya" }, { thai: "พะเยา", english: "Phayao" }, { thai: "พังงา", english: "Phang Nga" }, { thai: "พัทลุง", english: "Phatthalung" }, { thai: "พิจิตร", english: "Phichit" }, { thai: "พิษณุโลก", english: "Phitsanulok" }, { thai: "เพชรบุรี", english: "Phetchaburi" }, { thai: "เพชรบูรณ์", english: "Phetchabun" }, { thai: "แพร่", english: "Phrae" }, { thai: "ภูเก็ต", english: "Phuket" }, { thai: "มหาสารคาม", english: "Maha Sarakham" }, { thai: "มุกดาหาร", english: "Mukdahan" }, { thai: "แม่ฮ่องสอน", english: "Mae Hong Son" }, { thai: "ยโสธร", english: "Yasothon" }, { thai: "ยะลา", english: "Yala" }, { thai: "ร้อยเอ็ด", english: "Roi Et" }, { thai: "ระนอง", english: "Ranong" }, { thai: "ระยอง", english: "Rayong" }, { thai: "ราชบุรี", english: "Ratchaburi" }, { thai: "ลพบุรี", english: "Lopburi" }, { thai: "ลำปาง", english: "Lampang" }, { thai: "ลำพูน", english: "Lamphun" }, { thai: "เลย", english: "Loei" }, { thai: "ศรีสะเกษ", english: "Sisaket" }, { thai: "สกลนคร", english: "Sakon Nakhon" }, { thai: "สงขลา", english: "Songkhla" }, { thai: "สตูล", english: "Satun" }, { thai: "สมุทรปราการ", english: "Samut Prakan" }, { thai: "สมุทรสงคราม", english: "Samut Songkhram" }, { thai: "สมุทรสาคร", english: "Samut Sakhon" }, { thai: "สระแก้ว", english: "Sa Kaeo" }, { thai: "สระบุรี", english: "Saraburi" }, { thai: "สิงห์บุรี", english: "Sing Buri" }, { thai: "สุโขทัย", english: "Sukhothai" }, { thai: "สุพรรณบุรี", english: "Suphan Buri" }, { thai: "สุราษฎร์ธานี", english: "Surat Thani" }, { thai: "สุรินทร์", english: "Surin" }, { thai: "หนองคาย", english: "Nong Khai" }, { thai: "หนองบัวลำภู", english: "Nong Bua Lamphu" }, { thai: "อ่างทอง", english: "Ang Thong" }, { thai: "อำนาจเจริญ", english: "Amnat Charoen" }, { thai: "อุดรธานี", english: "Udon Thani" }, { thai: "อุตรดิตถ์", english: "Uttaradit" }, { thai: "อุทัยธานี", english: "Uthai Thani" }, { thai: "อุบลราชธานี", english: "Ubon Ratchathani" } ];
+
+        function populateProvinces() { thaiProvinces.sort((a, b) => a.thai.localeCompare(b.thai, 'th')); thaiProvinces.forEach(province => { const option = document.createElement('option'); option.value = province.english; option.textContent = province.thai; if (province.english === 'Satun') { option.selected = true; } provinceSelect.appendChild(option); }); }
+        function showLoading(isLoading) { loadingIndicator.classList.toggle('hidden', !isLoading); if (isLoading) { resultsContent.classList.add('hidden'); errorMessage.classList.add('hidden'); } }
+        function showError(message) { errorMessage.textContent = message; errorMessage.classList.remove('hidden'); showLoading(false); resultsContent.classList.add('hidden'); }
+
+        async function fetchWeatherData() {
+            if (!apiKey) {
+                showError('ไม่พบ API Key ในไฟล์ weather.html (ตัวแปร apiKey)');
+                return;
+            }
+            const province = provinceSelect.value;
+            showLoading(true);
+            const url = `https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${province}&days=3&aqi=no&alerts=no`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error.message || `HTTP status: ${response.status}`); }
+                const data = await response.json();
+                displayData(data);
+            } catch (error) { console.error('Error fetching weather data:', error); showError(`เกิดข้อผิดพลาด: ${error.message}`); } finally { showLoading(false); }
+        }
+        
+        function displayData(data) { displayCurrentWeather(data); if(forecastType === 'hourly') { displayHourlyForecast(data); } else { displayDailyForecast(data); } resultsContent.classList.remove('hidden'); }
+        function displayCurrentWeather(data) { 
+            const { location, current, forecast } = data;
+            const todayForecast = forecast.forecastday[0];
+            const astro = todayForecast.astro;
+            
+            currentWeatherCard.innerHTML = `
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="text-center md:text-left">
+                        <h2 class="text-3xl font-bold text-sky-800">${location.name}</h2>
+                        <p class="text-gray-500">${current.condition.text}</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <img src="https:${current.condition.icon}" alt="${current.condition.text}" class="w-20 h-20">
+                        <p class="text-6xl font-bold">${Math.round(current.temp_c)}<span class="text-3xl align-top">&deg;C</span></p>
+                    </div>
+                    <div class="text-center md:text-right text-gray-600">
+                        <p>รู้สึกเหมือน: ${Math.round(current.feelslike_c)}&deg;C</p>
+                        <p>ความชื้น: ${current.humidity}%</p>
+                        <p>ลม: ${Math.round(current.wind_kph)} กม./ชม.</p>
+                        <p class="font-semibold text-sky-700">ดัชนี UV: ${current.uv}</p>
+                    </div>
+                </div>
+                
+                <!-- Additional Weather Details Card -->
+                <div class="weather-card mt-6 p-4">
+                    <h3 class="text-xl font-bold text-sky-800 mb-3">ข้อมูลเพิ่มเติมวันนี้</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="text-center">
+                            <p class="text-gray-600 text-sm">ทิศทางลม</p>
+                            <p class="text-lg font-semibold">${current.wind_dir}</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-gray-600 text-sm">ลมกระโชก</p>
+                            <p class="text-lg font-semibold">${current.gust_kph} กม./ชม.</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-gray-600 text-sm">ความกดอากาศ</p>
+                            <p class="text-lg font-semibold">${current.pressure_mb} มบ.</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-gray-600 text-sm">ทัศนวิสัย</p>
+                            <p class="text-lg font-semibold">${current.vis_km} กม.</p>
+                        </div>
+                    </div>
+                </div>
+            `; 
+        }
+        function displayHourlyForecast({ forecast }) { forecastHeader.textContent = 'พยากรณ์รายชั่วโมงสำหรับวันนี้'; const todayForecast = forecast.forecastday[0].hour; const now = new Date(); const currentHour = now.getHours(); forecastGrid.className = 'grid grid-cols-1 gap-4'; forecastGrid.innerHTML = todayForecast.filter(hourData => new Date(hourData.time_epoch * 1000).getHours() >= currentHour).map(hourData => { const time = new Date(hourData.time_epoch * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }); return `<div class="weather-card flex items-center justify-between p-3"><p class="font-bold text-lg w-1/4">${time} น.</p><div class="flex items-center gap-2 w-1/4"><img src="https:${hourData.condition.icon}" alt="${hourData.condition.text}" class="w-10 h-10"></div><p class="w-1/4 text-center">${hourData.condition.text}</p><p class="text-2xl font-semibold w-1/4 text-right">${Math.round(hourData.temp_c)}&deg;C</p></div>`; }).join(''); }
+        function displayDailyForecast({ forecast }) { forecastHeader.textContent = 'พยากรณ์ล่วงหน้า 3 วัน'; forecastGrid.className = 'grid grid-cols-1 md:grid-cols-3 gap-4'; forecastGrid.innerHTML = forecast.forecastday.map(dayData => { const date = new Date(dayData.date_epoch * 1000); const dayName = new Intl.DateTimeFormat('th-TH', { weekday: 'long'}).format(date); 
+            // Determine moon phase text
+            let moonPhaseText = '';
+            if (dayData.astro.moon_phase === 'New Moon') moonPhaseText = 'ข้างแรม';
+            else if (dayData.astro.moon_phase === 'Waxing Crescent') moonPhaseText = 'ข้างขึ้น';
+            else if (dayData.astro.moon_phase === 'First Quarter') moonPhaseText = 'ข้างขึ้น';
+            else if (dayData.astro.moon_phase === 'Waxing Gibbous') moonPhaseText = 'ข้างขึ้น';
+            else if (dayData.astro.moon_phase === 'Full Moon') moonPhaseText = 'ข้างขึ้น';
+            else if (dayData.astro.moon_phase === 'Waning Gibbous') moonPhaseText = 'ข้างแรม';
+            else if (dayData.astro.moon_phase === 'Last Quarter') moonPhaseText = 'ข้างแรม';
+            else if (dayData.astro.moon_phase === 'Waning Crescent') moonPhaseText = 'ข้างแรม';
+            else moonPhaseText = dayData.astro.moon_phase;
+            
+            return `<div class="weather-card flex flex-col items-center text-center p-4">
+                <p class="font-bold text-xl">${dayName}</p>
+                <p class="text-gray-500 text-sm">${date.toLocaleString('th-TH', { day: 'numeric', month: 'short' })}</p>
+                <img src="https:${dayData.day.condition.icon}" alt="${dayData.day.condition.text}" class="w-16 h-16 my-2">
+                <p class="text-sm">${dayData.day.condition.text}</p>
+                <p class="text-2xl font-bold my-1">${Math.round(dayData.day.maxtemp_c)}&deg; / ${Math.round(dayData.day.mintemp_c)}&deg;</p>
+                <p class="text-sm text-blue-600">โอกาสเกิดฝน: ${dayData.day.daily_chance_of_rain}%</p>
+                
+                <div class="text-xs text-gray-500 mt-3 pt-3 border-t w-full">
+                    <div class="flex justify-between mb-1">
+                        <span>☀️ พระอาทิตย์ขึ้น:</span>
+                        <span>${dayData.astro.sunrise}</span>
+                    </div>
+                    <div class="flex justify-between mb-1">
+                        <span>🌙 พระจันทร์ขึ้น:</span>
+                        <span>${dayData.astro.moonrise}</span>
+                    </div>
+                    <div class="flex justify-between mb-1">
+                        <span>🌙 พระจันทร์ตก:</span>
+                        <span>${dayData.astro.moonset}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>🌙 ข้างขึ้น/ข้างแรม:</span>
+                        <span>${moonPhaseText}</span>
+                    </div>
+                </div>
+            </div>`; }).join(''); }
+        
+        function setupEventListeners() { provinceSelect.addEventListener('change', fetchWeatherData); hourlyBtn.addEventListener('click', () => { forecastType = 'hourly'; hourlyBtn.classList.add('active'); dailyBtn.classList.remove('active'); fetchWeatherData(); }); dailyBtn.addEventListener('click', () => { forecastType = 'daily'; dailyBtn.classList.add('active'); hourlyBtn.classList.remove('active'); fetchWeatherData(); }); }
+        
+        function initializeApp() { populateProvinces(); setupEventListeners(); fetchWeatherData(); }
+
+        initializeApp();
+    </script>
+</body>
+</html>

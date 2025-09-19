@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>อัลกุรอ่านของฉัน - Quran Wetsiri</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --arabic-font-size: 2.75rem; --thai-font-size: 1.25rem; --verse-key-font-size: 1.125rem; }
+        body { font-family: 'Prompt', sans-serif; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); }
+        .arabic-text { font-family: 'Amiri', serif; direction: rtl; line-height: 1.8; font-size: var(--arabic-font-size); font-weight: 400; }
+        .thai-text { font-family: 'Prompt', sans-serif; font-size: var(--thai-font-size); line-height: 1.7; font-weight: 400; }
+        .verse-key { font-size: var(--verse-key-font-size); font-weight: 600; }
+        .verse-playing { border-color: #0d9488; background-color: #f0fdfa; box-shadow: 0 0 20px rgba(13, 148, 136, 0.2); transform: scale(1.01); }
+        .custom-select { font-size: 1.1rem; padding: 0.5rem 1rem; font-family: 'Prompt', sans-serif; }
+        .dark body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #d1d5db; }
+        .dark .bg-white { background-color: #1f2937; }
+        .dark .border-gray-200 { border-color: #374151 !important; }
+        .dark .text-gray-800, .dark .text-gray-900 { color: #f9fafb; }
+        .dark .text-gray-700 { color: #d1d5db; }
+        .dark .text-gray-600 { color: #9ca3af; }
+        .dark .text-gray-500 { color: #6b7280; }
+        .dark .text-teal-800 { color: #2dd4bf; }
+        .dark .text-teal-900 { color: #5eead4; }
+        .dark .bg-teal-50 { background-color: rgba(13, 148, 136, 0.1); }
+        .dark .border-teal-200 { border-color: #0d9488; }
+        .dark .border-l-8 { border-left-color: #0d9488 !important; }
+        .dark .verse-playing { border-color: #2dd4bf !important; background-color: #042f2e; }
+        .dark .custom-select { background-color: #374151; border-color: #4b5563; color: #f9fafb; }
+        .dark .bg-gray-200 { background-color: #374151; }
+        .dark .hover\:bg-gray-300:hover { background-color: #4b5563; }
+        .dark .hover\:bg-gray-200:hover { background-color: #4b5563; }
+        .dark .hover\:bg-teal-100:hover { background-color: #042f2e; }
+        
+        /* Share modal styles */
+        #share-modal .arabic-text {
+            font-size: 1.5rem;
+            line-height: 1.6;
+        }
+        
+        #share-modal .thai-text {
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        
+        /* Header styling */
+        header h1 {
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        header p {
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Button styling */
+        button {
+            font-family: 'Prompt', sans-serif;
+            font-weight: 500;
+        }
+        
+        /* Card titles */
+        .prayer-time-name, .weather-card h4 {
+            font-family: 'Prompt', sans-serif;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto p-4 md:p-8 max-w-5xl">
+        <div id="main-header"></div>
+        <div id="navbar-container"></div>
+
+        <div class="text-center mb-8">
+            <div class="p-6 bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-gray-800 dark:to-gray-800 border-l-4 border-r-4 border-teal-500 dark:border-teal-400 rounded-2xl shadow-lg card">
+                <p class="text-lg text-teal-800 dark:text-teal-300">จัดทำขึ้นเป็นพิเศษสำหรับ</p>
+                <p class="text-2xl font-bold text-teal-900 dark:text-teal-200 mt-2">ฮะยีอะหมาด และ ฮัจญะห์วิไล เวชศิริ</p>
+                <p class="text-md text-gray-600 dark:text-gray-400 mt-3">ด้วยความเคารพรัก โดย เภสัชกรวิรุณ เวชศิริ</p>
+            </div>
+        </div>
+
+        <div id="controls-container" class="bg-white p-6 rounded-2xl shadow-xl mb-8 sticky top-24 z-10 border border-gray-200 transition-all duration-300 card">
+            <div id="controls-panel">
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-center">
+                    <div class="lg:col-span-3">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="surah-select" class="block text-sm font-semibold text-gray-700 mb-2">ซูเราะฮ์</label>
+                                <select id="surah-select" class="custom-select w-full mt-1"></select>
+                            </div>
+                            <div>
+                                <label for="translation-select" class="block text-sm font-semibold text-gray-700 mb-2">ฉบับคำแปล</label>
+                                <select id="translation-select" class="custom-select w-full mt-1"></select>
+                            </div>
+                            <div>
+                                <label for="reciter-select" class="block text-sm font-semibold text-gray-700 mb-2">นักอ่าน</label>
+                                <select id="reciter-select" class="custom-select w-full mt-1"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-2">
+                        <div class="flex items-center justify-center lg:justify-end gap-6">
+                            <div class="text-center">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">ขนาดอักษร</label>
+                                <div class="flex items-center justify-center gap-3 mt-1">
+                                    <button id="decrease-font-btn" class="font-bold text-xl bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-full w-12 h-12 flex items-center justify-center shadow-md transition-all duration-200">-</button>
+                                    <button id="increase-font-btn" class="font-bold text-xl bg-teal-600 hover:bg-teal-700 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-md transition-all duration-200">+</button>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">เล่นเสียง</label>
+                                <button id="play-all-btn" class="mt-1 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-bold py-3 px-5 rounded-xl shadow-lg flex items-center justify-center gap-3 transition-all duration-300 transform hover:scale-105">
+                                    <svg id="play-all-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6"><path d="M8 5v14l11-7z"></path></svg>
+                                    <svg id="pause-all-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 hidden"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>
+                                    <span id="play-all-text" class="hidden md:inline">ทั้งซูเราะฮ์</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="toggle-container" class="text-center border-t border-gray-200 mt-4 pt-3">
+                <button id="toggle-controls-btn" class="p-2 text-gray-500 hover:text-teal-600 w-full text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-2">
+                    <svg id="toggle-icon-up" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" />
+                    </svg>
+                    <svg id="toggle-icon-down" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                    <span id="toggle-text">ซ่อนตัวเลือก</span>
+                </button>
+            </div>
+        </div>
+        <main id="content-area"><div id="loading-indicator" class="text-center p-8 hidden"><div class="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-teal-600"></div><p class="mt-4 text-gray-600 text-lg">กำลังโหลดข้อมูล...</p></div><div id="error-message" class="text-center p-8 bg-red-100 text-red-700 rounded-lg hidden"></div><div id="surah-content" class="space-y-6"></div></main>
+        <div id="main-footer"></div>
+    </div>
+    <audio id="audio-player" class="hidden"></audio>
+    <script src="layout.js"></script>
+    <script>
+        const surahSelect = document.getElementById('surah-select');
+        const translationSelect = document.getElementById('translation-select');
+        const reciterSelect = document.getElementById('reciter-select');
+        const surahContent = document.getElementById('surah-content');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const errorMessage = document.getElementById('error-message');
+        const audioPlayer = document.getElementById('audio-player');
+        const increaseFontBtn = document.getElementById('increase-font-btn');
+        const decreaseFontBtn = document.getElementById('decrease-font-btn');
+        const root = document.documentElement;
+        const controlsContainer = document.getElementById('controls-container');
+        const toggleControlsBtn = document.getElementById('toggle-controls-btn');
+        const controlsPanel = document.getElementById('controls-panel');
+        const toggleText = document.getElementById('toggle-text');
+        const playAllBtn = document.getElementById('play-all-btn');
+        const playAllIcon = document.getElementById('play-all-icon');
+        const pauseAllIcon = document.getElementById('pause-all-icon');
+        const playAllText = document.getElementById('play-all-text');
+        let currentlyPlayingButton = null;
+        let currentSurahVerses = [];
+        let currentPlayAllIndex = 0;
+        let isPlayAllActive = false;
+        const surahs = [ { "id": 1, "name": "Al-Fatihah", "arabic": "الفاتحة" }, { "id": 2, "name": "Al-Baqarah", "arabic": "البقرة" }, { "id": 3, "name": "Aal-E-Imran", "arabic": "آل عمران" }, { "id": 4, "name": "An-Nisa", "arabic": "النساء" }, { "id": 5, "name": "Al-Ma'idah", "arabic": "المائدة" }, { "id": 6, "name": "Al-An'am", "arabic": "الأنعام" }, { "id": 7, "name": "Al-A'raf", "arabic": "الأعراف" }, { "id": 8, "name": "Al-Anfal", "arabic": "الأنفال" }, { "id": 9, "name": "At-Tawbah", "arabic": "التوبة" }, { "id": 10, "name": "Yunus", "arabic": "يونس" }, { "id": 11, "name": "Hud", "arabic": "هود" }, { "id": 12, "name": "Yusuf", "arabic": "يوسف" }, { "id": 13, "name": "Ar-Ra'd", "arabic": "الرعد" }, { "id": 14, "name": "Ibrahim", "arabic": "ابراهيم" }, { "id": 15, "name": "Al-Hijr", "arabic": "الحجر" }, { "id": 16, "name": "An-Nahl", "arabic": "النحل" }, { "id": 17, "name": "Al-Isra", "arabic": "الإسراء" }, { "id": 18, "name": "Al-Kahf", "arabic": "الكهف" }, { "id": 19, "name": "Maryam", "arabic": "مريم" }, { "id": 20, "name": "Taha", "arabic": "طه" }, { "id": 21, "name": "Al-Anbiya", "arabic": "الأنبياء" }, { "id": 22, "name": "Al-Hajj", "arabic": "الحج" }, { "id": 23, "name": "Al-Mu'minun", "arabic": "المؤمنون" }, { "id": 24, "name": "An-Nur", "arabic": "النور" }, { "id": 25, "name": "Al-Furqan", "arabic": "الفرقان" }, { "id": 26, "name": "Ash-Shu'ara", "arabic": "الشعراء" }, { "id": 27, "name": "An-Naml", "arabic": "النمل" }, { "id": 28, "name": "Al-Qasas", "arabic": "القصص" }, { "id": 29, "name": "Al-Ankabut", "arabic": "العنكبوت" }, { "id": 30, "name": "Ar-Rum", "arabic": "الรوم" }, { "id": 31, "name": "Luqman", "arabic": "لقمان" }, { "id": 32, "name": "As-Sajdah", "arabic": "السجدة" }, { "id": 33, "name": "Al-Ahzab", "arabic": "الأحزاب" }, { "id": 34, "name": "Saba", "arabic": "سبإ" }, { "id": 35, "name": "Fatir", "arabic": "فاطر" }, { "id": 36, "name": "Ya-Sin", "arabic": "يس" }, { "id": 37, "name": "As-Saffat", "arabic": "الصافات" }, { "id": 38, "name": "Sad", "arabic": "ص" }, { "id": 39, "name": "Az-Zumar", "arabic": "الزمر" }, { "id": 40, "name": "Ghafir", "arabic": "غافر" }, { "id": 41, "name": "Fussilat", "arabic": "فصلت" }, { "id": 42, "name": "Ash-Shuraa", "arabic": "الشورى" }, { "id": 43, "name": "Az-Zukhruf", "arabic": "الزخرف" }, { "id": 44, "name": "Ad-Dukhan", "arabic": "الدخان" }, { "id": 45, "name": "Al-Jathiyah", "arabic": "الجاثية" }, { "id": 46, "name": "Al-Ahqaf", "arabic": "الأحقاف" }, { "id": 47, "name": "Muhammad", "arabic": "محمد" }, { "id": 48, "name": "Al-Fath", "arabic": "الفتح" }, { "id": 49, "name": "Al-Hujurat", "arabic": "الحجرات" }, { "id": 50, "name": "Qaf", "arabic": "ق" }, { "id": 51, "name": "Adh-Dhariyat", "arabic": "الذاريات" }, { "id": 52, "name": "At-Tur", "arabic": "الطور" }, { "id": 53, "name": "An-Najm", "arabic": "النجم" }, { "id": 54, "name": "Al-Qamar", "arabic": "القمر" }, { "id": 55, "name": "Ar-Rahman", "arabic": "الرحمن" }, { "id": 56, "name": "Al-Waqi'ah", "arabic": "الواقعة" }, { "id": 57, "name": "Al-Hadid", "arabic": "الحديد" }, { "id": 58, "name": "Al-Mujadila", "arabic": "المجادلة" }, { "id": 59, "name": "Al-Hashr", "arabic": "الحشر" }, { "id": 60, "name": "Al-Mumtahanah", "arabic": "الممتحنة" }, { "id": 61, "name": "As-Saf", "arabic": "الصف" }, { "id": 62, "name": "Al-Jumu'ah", "arabic": "الجمعة" }, { "id": 63, "name": "Al-Munafiqun", "arabic": "المنافقون" }, { "id": 64, "name": "At-Taghabun", "arabic": "التغابن" }, { "id": 65, "name": "At-Talaq", "arabic": "الطلاق" }, { "id": 66, "name": "At-Tahrim", "arabic": "التحريم" }, { "id": 67, "name": "Al-Mulk", "arabic": "الملك" }, { "id": 68, "name": "Al-Qalam", "arabic": "القلم" }, { "id": 69, "name": "Al-Haqqah", "arabic": "الحاقة" }, { "id": 70, "name": "Al-Ma'arij", "arabic": "المعارج" }, { "id": 71, "name": "Nuh", "arabic": "نوح" }, { "id": 72, "name": "Al-Jinn", "arabic": "الجن" }, { "id": 73, "name": "Al-Muzzammil", "arabic": "المزمل" }, { "id": 74, "name": "Al-Muddaththir", "arabic": "المدثر" }, { "id": 75, "name": "Al-Qiyamah", "arabic": "القيامة" }, { "id": 76, "name": "Al-Insan", "arabic": "الانسان" }, { "id": 77, "name": "Al-Mursalat", "arabic": "المرسلات" }, { "id": 78, "name": "An-Naba", "arabic": "النبإ" }, { "id": 79, "name": "An-Nazi'at", "arabic": "النازعات" }, { "id": 80, "name": "Abasa", "arabic": "عبس" }, { "id": 81, "name": "At-Takwir", "arabic": "التكوير" }, { "id": 82, "name": "Al-Infitar", "arabic": "الإنفطار" }, { "id": 83, "name": "Al-Mutaffifin", "arabic": "المطففين" }, { "id": 84, "name": "Al-Inshiqaq", "arabic": "الإنشقاق" }, { "id": 85, "name": "Al-Buruj", "arabic": "البروج" }, { "id": 86, "name": "At-Tariq", "arabic": "الطارق" }, { "id": 87, "name": "Al-Ala", "arabic": "الأعلى" }, { "id": 88, "name": "Al-Ghashiyah", "arabic": "الغاشية" }, { "id": 89, "name": "Al-Fajr", "arabic": "الفجر" }, { "id": 90, "name": "Al-Balad", "arabic": "البلد" }, { "id": 91, "name": "Ash-Shams", "arabic": "الشمس" }, { "id": 92, "name": "Al-Layl", "arabic": "الليل" }, { "id": 93, "name": "Ad-Duhaa", "arabic": "الضحى" }, { "id": 94, "name": "Ash-Sharh", "arabic": "الشرح" }, { "id": 95, "name": "At-Tin", "arabic": "التين" }, { "id": 96, "name": "Al-Alaq", "arabic": "العلق" }, { "id": 97, "name": "Al-Qadr", "arabic": "القدر" }, { "id": 98, "name": "Al-Bayyinah", "arabic": "البينة" }, { "id": 99, "name": "Az-Zalzalah", "arabic": "الزلزلة" }, { "id": 100, "name": "Al-Adiyat", "arabic": "العاديات" }, { "id": 101, "name": "Al-Qari'ah", "arabic": "القارعة" }, { "id": 102, "name": "At-Takathur", "arabic": "التكاثر" }, { "id": 103, "name": "Al-Asr", "arabic": "العصر" }, { "id": 104, "name": "Al-Humazah", "arabic": "الهمزة" }, { "id": 105, "name": "Al-Fil", "arabic": "الفيل" }, { "id": 106, "name": "Quraysh", "arabic": "قريش" }, { "id": 107, "name": "Al-Ma'un", "arabic": "الماعون" }, { "id": 108, "name": "Al-Kawthar", "arabic": "الكوثر" }, { "id": 109, "name": "Al-Kafirun", "arabic": "الكافرون" }, { "id": 110, "name": "An-Nasr", "arabic": "النصر" }, { "id": 111, "name": "Al-Masad", "arabic": "المسد" }, { "id": 112, "name": "Al-Ikhlas", "arabic": "الإخلاص" }, { "id": 113, "name": "Al-Falaq", "arabic": "الفلق" }, { "id": 114, "name": "An-Nas", "arabic": "الناس" } ];
+        function getPlayIcon() { return `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-teal-600"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`; }
+        function getPauseIcon() { return `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-teal-600"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`; }
+        function populateSurahSelector() { surahs.forEach(surah => { const option = document.createElement('option'); option.value = surah.id; option.textContent = `${surah.id}. ${surah.name} (${surah.arabic})`; surahSelect.appendChild(option); }); }
+        async function fetchThaiTranslations() { const url = 'https://quranenc.com/api/v1/translations/list/th'; let list = []; try { const response = await fetch(url, { cache: 'no-cache' }); if (response.ok) { const data = await response.json(); if (Array.isArray(data.translations) && data.translations.length > 0) list = data.translations; } } catch (error) { console.error('Failed to fetch translations:', error); } if (list.length === 0) { list = [ { key: 'thai_rwwad', name: 'Rowwad Translation Center' }, { key: 'thai_complex', name: 'King Fahad Complex' } ]; } list.forEach(t => { const option = document.createElement('option'); option.value = t.key; option.textContent = t.name; translationSelect.appendChild(option); }); return translationSelect.options.length > 0; }
+        async function fetchReciters() { const url = 'https://api.alquran.cloud/v1/edition/format/audio'; let list = []; try { const response = await fetch(url, { cache: 'no-cache' }); if (response.ok) { const data = await response.json(); list = data.data.filter(reciter => reciter.language === 'ar'); } } catch (error) { console.error('Failed to fetch reciters:', error); } if (list.length === 0) { list = [{ identifier: 'ar.alafasy', englishName: 'Mishary Rashid Alafasy' }]; } list.forEach(r => { const option = document.createElement('option'); option.value = r.identifier; option.textContent = r.englishName; reciterSelect.appendChild(option); }); return reciterSelect.options.length > 0; }
+        function showLoading(isLoading) { loadingIndicator.classList.toggle('hidden', !isLoading); if(isLoading) { surahContent.innerHTML = ''; errorMessage.classList.add('hidden'); } }
+        function showError(message) { errorMessage.textContent = message; errorMessage.classList.remove('hidden'); surahContent.innerHTML = ''; showLoading(false); }
+        async function fetchSurahData() { const surahNumber = surahSelect.value; const translationKey = translationSelect.value; const reciterId = reciterSelect.value; if (!surahNumber || !translationKey || !reciterId) return; showLoading(true); const mainApiUrl = `https://api.alquran.cloud/v1/surah/${surahNumber}/${reciterId}`; const thaiApiUrl = `https://quranenc.com/api/v1/translation/sura/${translationKey}/${surahNumber}`; try { const [mainResponse, thaiResponse] = await Promise.all([ fetch(mainApiUrl, { cache: 'no-cache' }), fetch(thaiApiUrl, { cache: 'no-cache' }) ]); if (!mainResponse.ok || !thaiResponse.ok) throw new Error('ไม่สามารถดึงข้อมูลจาก API ได้'); const mainData = await mainResponse.json(); const thaiData = await thaiResponse.json(); if (!mainData.data || !Array.isArray(mainData.data.ayahs)) throw new Error('รูปแบบข้อมูลเสียง/ภาษาอาหรับไม่ถูกต้อง'); if (!thaiData || !Array.isArray(thaiData.result)) throw new Error('รูปแบบข้อมูลคำแปลไม่ถูกต้อง'); const thaiVerseMap = new Map(thaiData.result.map(v => [v.aya, v])); const validVerses = mainData.data.ayahs.filter(verse => verse && verse.audio && verse.text); const combinedData = validVerses.map(verse => { const verseKey = `${surahNumber}:${verse.numberInSurah}`; const ayahNumberInSurah = String(verse.numberInSurah); const thaiVerse = thaiVerseMap.get(ayahNumberInSurah); return { verse_key: verseKey, arabic_text: verse.text, audio_url: verse.audio, thai_translation: thaiVerse ? thaiVerse.translation : 'ไม่มีคำแปล', footnotes: thaiVerse ? thaiVerse.footnotes : '' }; }); currentSurahVerses = combinedData; resetPlayAllState(); displaySurah(combinedData); } catch (error) { console.error('Error fetching surah data:', error); showError(`เกิดข้อผิดพลาดในการโหลดข้อมูล: ${error.message}`); } finally { showLoading(false); } }
+        function displaySurah(verses) { surahContent.innerHTML = ''; verses.forEach(verse => { const verseElement = document.createElement('div'); verseElement.id = `verse-${verse.verse_key}`; verseElement.className = 'bg-white p-6 rounded-xl shadow-md border-l-8 border-teal-500 transition-all duration-300'; let footnotesHTML = ''; if(verse.footnotes && verse.footnotes.trim() !== ''){ footnotesHTML = `<div class="mt-4 pt-4 border-t border-gray-200 text-base text-gray-600"><h4 class="font-semibold mb-1">เชิงอรรถ:</h4><p>${verse.footnotes}</p></div>`; } verseElement.innerHTML = `<div class="flex justify-between items-center mb-4"><span class="verse-key font-bold text-teal-600">${verse.verse_key}</span><div class="flex gap-2"><button class="play-audio-btn p-3 rounded-full hover:bg-teal-100 transition-colors" data-audio-url="${verse.audio_url}" title="เล่นเสียงอ่าน">${getPlayIcon()}</button><button class="share-btn p-3 rounded-full hover:bg-teal-100 transition-colors" data-verse-key="${verse.verse_key}" data-arabic="${verse.arabic_text}" data-thai="${verse.thai_translation}" title="แชร์อายะฮ์"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-teal-600"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></button></div></div><p class="arabic-text text-right text-gray-900 mb-6">${verse.arabic_text}</p><p class="thai-text text-gray-700">${verse.thai_translation}</p>${footnotesHTML}`; surahContent.appendChild(verseElement); }); }
+        surahContent.addEventListener('click', (e) => { 
+            const playButton = e.target.closest('.play-audio-btn');
+            const shareButton = e.target.closest('.share-btn');
+            
+            if (playButton) {
+                if (isPlayAllActive) resetPlayAllState();
+                const audioUrl = playButton.dataset.audioUrl;
+                document.querySelectorAll('.verse-playing').forEach(el => el.classList.remove('verse-playing'));
+                if (currentlyPlayingButton === playButton && !audioPlayer.paused) {
+                    audioPlayer.pause();
+                } else {
+                    if (currentlyPlayingButton) currentlyPlayingButton.innerHTML = getPlayIcon();
+                    audioPlayer.src = audioUrl;
+                    audioPlayer.play().catch(err => {
+                        showError("ไม่สามารถเล่นเสียงได้");
+                        console.error("Audio play failed", err);
+                    });
+                    currentlyPlayingButton = playButton;
+                    playButton.innerHTML = getPauseIcon();
+                    playButton.closest('.bg-white').classList.add('verse-playing');
+                }
+            } else if (shareButton) {
+                const verseKey = shareButton.dataset.verseKey;
+                const arabicText = shareButton.dataset.arabic;
+                const thaiText = shareButton.dataset.thai;
+                showShareOptions(verseKey, arabicText, thaiText);
+            }
+        });
+        audioPlayer.addEventListener('pause', () => { if (!isPlayAllActive) { if (currentlyPlayingButton) { currentlyPlayingButton.innerHTML = getPlayIcon(); document.querySelectorAll('.verse-playing').forEach(el => el.classList.remove('verse-playing')); } } });
+        audioPlayer.addEventListener('ended', () => { if (isPlayAllActive) { currentPlayAllIndex++; playVerse(currentPlayAllIndex); } else { if (currentlyPlayingButton) { currentlyPlayingButton.innerHTML = getPlayIcon(); document.querySelectorAll('.verse-playing').forEach(el => el.classList.remove('verse-playing')); currentlyPlayingButton = null; } } });
+        toggleControlsBtn.addEventListener('click', () => { const isNowHidden = controlsPanel.classList.toggle('hidden'); if (isNowHidden) { controlsContainer.classList.remove('p-4'); controlsContainer.classList.add('p-2'); } else { controlsContainer.classList.add('p-4'); controlsContainer.classList.remove('p-2'); } toggleText.textContent = isNowHidden ? 'แสดงตัวเลือก' : 'ซ่อนตัวเลือก'; 
+            // Toggle icons
+            const upIcon = document.getElementById('toggle-icon-up');
+            const downIcon = document.getElementById('toggle-icon-down');
+            if (isNowHidden) {
+                upIcon.classList.add('hidden');
+                downIcon.classList.remove('hidden');
+            } else {
+                upIcon.classList.remove('hidden');
+                downIcon.classList.add('hidden');
+            }
+        });
+        function resetPlayAllState() { isPlayAllActive = false; currentPlayAllIndex = 0; audioPlayer.pause(); audioPlayer.src = ''; playAllIcon.classList.remove('hidden'); pauseAllIcon.classList.add('hidden'); playAllText.textContent = 'ทั้งซูเราะฮ์'; if (currentlyPlayingButton) { currentlyPlayingButton.innerHTML = getPlayIcon(); } document.querySelectorAll('.verse-playing').forEach(el => el.classList.remove('verse-playing')); currentlyPlayingButton = null; }
+        function playVerse(index) { if (index >= currentSurahVerses.length) { resetPlayAllState(); return; } const verse = currentSurahVerses[index]; audioPlayer.src = verse.audio_url; audioPlayer.play().catch(err => { console.error("Audio play failed", err); resetPlayAllState(); }); document.querySelectorAll('.verse-playing').forEach(el => el.classList.remove('verse-playing')); if (currentlyPlayingButton) { currentlyPlayingButton.innerHTML = getPlayIcon(); } const verseElement = document.getElementById(`verse-${verse.verse_key}`); if (verseElement) { verseElement.classList.add('verse-playing'); verseElement.scrollIntoView({ behavior: 'smooth', block: 'center' }); const individualPlayBtn = verseElement.querySelector('.play-audio-btn'); if (individualPlayBtn) { currentlyPlayingButton = individualPlayBtn; currentlyPlayingButton.innerHTML = getPauseIcon(); } } }
+        playAllBtn.addEventListener('click', () => { if (isPlayAllActive) { audioPlayer.pause(); isPlayAllActive = false; playAllIcon.classList.remove('hidden'); pauseAllIcon.classList.add('hidden'); } else { isPlayAllActive = true; playAllIcon.classList.add('hidden'); pauseAllIcon.classList.remove('hidden'); if (audioPlayer.paused) { playVerse(currentPlayAllIndex); } } });
+        function updateFontSize(adjustment) { const currentArabicSize = parseFloat(getComputedStyle(root).getPropertyValue('--arabic-font-size')); const currentThaiSize = parseFloat(getComputedStyle(root).getPropertyValue('--thai-font-size')); const newArabicSize = Math.max(1.5, currentArabicSize + adjustment * 0.2); const newThaiSize = Math.max(0.8, currentThaiSize + adjustment * 0.1); root.style.setProperty('--arabic-font-size', `${newArabicSize}rem`); root.style.setProperty('--thai-font-size', `${newThaiSize}rem`); }
+        increaseFontBtn.addEventListener('click', () => updateFontSize(1));
+        decreaseFontBtn.addEventListener('click', () => updateFontSize(-1));
+        surahSelect.addEventListener('change', fetchSurahData);
+        translationSelect.addEventListener('change', fetchSurahData);
+        reciterSelect.addEventListener('change', fetchSurahData);
+        function setInitialPanelState() { const isSmallScreen = window.innerWidth < 768; if (isSmallScreen) { controlsPanel.classList.add('hidden'); controlsContainer.classList.remove('p-4'); controlsContainer.classList.add('p-2'); } else { controlsPanel.classList.remove('hidden'); controlsContainer.classList.add('p-4'); controlsContainer.classList.remove('p-2'); } toggleText.textContent = isSmallScreen ? 'แสดงตัวเลือก' : 'ซ่อนตัวเลือก'; }
+        async function initializeApp() {
+            try {
+                applyLayout('อัลกุรอานของฉัน', 'index.html');
+                populateSurahSelector();
+                const translationsLoaded = await fetchThaiTranslations();
+                const recitersLoaded = await fetchReciters();
+                if (translationsLoaded && recitersLoaded) {
+                    const basfarOption = Array.from(reciterSelect.options).find(opt => opt.text.includes('Basfar'));
+                    if (basfarOption) reciterSelect.value = basfarOption.value;
+                    setInitialPanelState();
+                    await fetchSurahData();
+                } else {
+                    showError("ไม่สามารถโหลดตัวเลือกคำแปลหรือนักอ่านได้ กรุณาลองใหม่อีกครั้ง");
+                }
+            } catch (e) {
+                showError(`เกิดข้อผิดพลาดร้ายแรง: ${e.message}`);
+                console.error(e);
+            }
+        }
+
+        // Function to show share options modal
+        function showShareOptions(verseKey, arabicText, thaiText) {
+            // Create modal if it doesn't exist
+            let modal = document.getElementById('share-modal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'share-modal';
+                modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden';
+                modal.innerHTML = `
+                    <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold text-teal-800">แชร์อายะฮ์</h3>
+                            <button id="close-share-modal" class="text-gray-500 hover:text-gray-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="mb-4">
+                            <p class="font-semibold text-gray-700">${verseKey}</p>
+                            <p class="arabic-text text-right text-gray-900 my-2">${arabicText}</p>
+                            <p class="thai-text text-gray-700">${thaiText}</p>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <button id="share-facebook" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                                Facebook
+                            </button>
+                            <button id="share-line" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10.044 16.254l-1.773 5.026c-.1.282-.35.466-.644.466-.125 0-.252-.03-.372-.095-.39-.21-.53-.7-.32-1.06l3.67-6.21-4.73-11.78c-.16-.376.025-.8.42-.896.394-.097.8.074 1.01.415l4.5 11.07 4.41-11.07c.21-.34.616-.512 1.01-.415.395.096.58.52.42.895l-5.45 13.57-2.16-6.24c-.17-.49-.74-.67-1.23-.5z"/></svg>
+                                LINE
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                
+                // Add event listeners for modal
+                document.getElementById('close-share-modal').addEventListener('click', () => {
+                    modal.classList.add('hidden');
+                });
+                
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.add('hidden');
+                    }
+                });
+            }
+            
+            // Update modal content
+            const modalContent = modal.querySelector('div.bg-white');
+            modalContent.querySelector('.font-semibold').textContent = verseKey;
+            modalContent.querySelector('.arabic-text').textContent = arabicText;
+            modalContent.querySelector('.thai-text').textContent = thaiText;
+            
+            // Add event listeners for share buttons
+            document.getElementById('share-facebook').onclick = () => {
+                shareToFacebook(verseKey, arabicText, thaiText);
+            };
+            
+            document.getElementById('share-line').onclick = () => {
+                shareToLine(verseKey, arabicText, thaiText);
+            };
+            
+            // Show modal
+            modal.classList.remove('hidden');
+        }
+
+        // Function to share to Facebook
+        function shareToFacebook(verseKey, arabicText, thaiText) {
+            const text = `${verseKey}
+${arabicText}
+${thaiText}
+
+อัลกุรอานของฉัน - My Quran`;
+            let url = window.location.href;
+            
+            // Check if we're running locally (file:// protocol)
+            if (url.startsWith('file://')) {
+                // For local testing, use a placeholder URL
+                url = 'https://example.com/quran'; // This should be your actual deployed URL
+            }
+            
+            const textEncoded = encodeURIComponent(text);
+            const urlEncoded = encodeURIComponent(url);
+            
+            // Use the correct Facebook sharing URL
+            const facebookUrl = `https://www.facebook.com/sharer.php?u=${urlEncoded}&quote=${textEncoded}`;
+            const popup = window.open(facebookUrl, '_blank', 'width=600,height=400');
+            
+            // If popup blocking prevents opening, fallback to redirect
+            if (!popup || popup.closed || typeof popup.closed == 'undefined') {
+                window.location.href = facebookUrl;
+            }
+        }
+
+        // Function to share to LINE\n        function shareToLine(verseKey, arabicText, thaiText) {\n            let url = window.location.href;\n            \n            // Check if we're running locally (file:// protocol)\n            if (url.startsWith('file://')) {\n                // For local testing, use a placeholder URL\n                url = 'https://example.com/quran'; // This should be your actual deployed URL\n            }\n            \n            const text = `${verseKey}\n${arabicText}\n${thaiText}\n\nอัลกุรอานของฉัน - My Quran\n${url}`;\n            const textEncoded = encodeURIComponent(text);\n            \n            // Check if we're on a mobile device\n            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);\n            \n            if (isMobile) {\n                // On mobile, try to open LINE app directly\n                window.location.href = `line://msg/text/${textEncoded}`;\n            } else {\n                // On desktop, open LINE web share\n                window.open(`https://line.me/R/msg/text/?${textEncoded}`, '_blank');\n            }\n        }
+        initializeApp();
+    </script>
+</body>
+</html>
