@@ -225,7 +225,7 @@
         surahSelect.addEventListener('change', fetchSurahData);
         translationSelect.addEventListener('change', fetchSurahData);
         reciterSelect.addEventListener('change', fetchSurahData);
-        function setInitialPanelState() { const isSmallScreen = window.innerWidth < 768; if (isSmallScreen) { controlsPanel.classList.add('hidden'); controlsContainer.classList.remove('p-4'); controlsContainer.classList.add('p-2'); } else { controlsPanel.classList.remove('hidden'); controlsContainer.classList.add('p-4'); controlsContainer.classList.remove('p-2'); } toggleText.textContent = isSmallScreen ? 'แสดงตัวเลือก' : 'ซ่อนตัวเลือก'; }
+        function setInitialPanelState() { const isSmallScreen = window.innerWidth < 768; if (isSmallScreen) { controlsPanel.classList.remove('hidden'); controlsContainer.classList.add('p-4'); controlsContainer.classList.remove('p-2'); toggleText.textContent = 'ซ่อนตัวเลือก'; } else { controlsPanel.classList.remove('hidden'); controlsContainer.classList.add('p-4'); controlsContainer.classList.remove('p-2'); } toggleText.textContent = 'ซ่อนตัวเลือก'; }
         async function initializeApp() {
             try {
                 applyLayout('อัลกุรอานของฉัน', 'index.html');

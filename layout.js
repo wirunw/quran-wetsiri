@@ -55,10 +55,12 @@ function initializeTheme() {
 
     if (!themeToggleBtn || !themeToggleDarkIcon || !themeToggleLightIcon) return;
 
-    if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    // Default to light mode unless user has explicitly set dark mode
+    if (localStorage.getItem('color-theme') === 'dark') {
         document.documentElement.classList.add('dark');
         themeToggleLightIcon.classList.remove('hidden');
     } else {
+        // Default to light mode
         document.documentElement.classList.remove('dark');
         themeToggleDarkIcon.classList.remove('hidden');
     }
