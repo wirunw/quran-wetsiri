@@ -257,6 +257,27 @@
             `;
             importantDatesContainer.appendChild(hijriInfoCard);
         }
+
+        // Function to set date to today
+        function setToday() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            
+            // Set the date in the flatpickr instance
+            if (dateInput._flatpickr) {
+                dateInput._flatpickr.setDate(formattedDate, true);
+            } else {
+                // Fallback: directly set the input value
+                dateInput.value = formattedDate;
+            }
+            
+            // Trigger the change event to refresh prayer times
+            const event = new Event('change', { bubbles: true });
+            dateInput.dispatchEvent(event);
+        }
         function displayPrayerTimes(data, locationName, dateValue) { currentTimings = data.timings; const dateObj = new Date(dateValue + 'T00:00:00'); const formattedDate = new Intl.DateTimeFormat('th-TH', { dateStyle: 'full' }).format(dateObj).replace(/^วันที่ /, ''); const hijri = data.date.hijri; const hijriMonthEn = hijri.month.en; const hijriMonthThai = hijriMonthsThai[hijriMonthEn] || hijri.month.ar; const formattedHijriDate = `วันที่ตามปฏิทินอิสลาม: ${hijri.day} ${hijriMonthThai} ${hijri.year}`; resultHeader.textContent = `เวลาละหมาดสำหรับ ${locationName}, ${formattedDate}`; resultDateHijri.textContent = formattedHijriDate; let tidbitText; const monthInfo = islamicCalendarInfo[hijri.month.number]; const hijriDayInt = parseInt(hijri.day, 10); if (monthInfo && monthInfo.days && monthInfo.days[hijriDayInt]) { tidbitText = monthInfo.days[hijriDayInt]; } else if (hijri.month.number === 9 && hijriDayInt > 20) { tidbitText = monthInfo.special; } else { const gregorianDay = dateObj.getDate(); const tidbitIndex = (gregorianDay + hijriDayInt) % generalTidbits.length; tidbitText = generalTidbits[tidbitIndex]; } dailyTidbit.innerHTML = `<strong>เกร็ดความรู้:</strong> ${tidbitText}`; prayerTimesGrid.innerHTML = ''; const prayerOrder = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']; const prayerNamesThai = { Fajr: 'ฟัจร์', Sunrise: 'ตะวันขึ้น', Dhuhr: 'ดุฮ์ริ', Asr: 'อัศริ', Maghrib: 'มัฆริบ', Isha: 'อิชาอ์' }; prayerOrder.forEach(prayerKey => { const time = data.timings[prayerKey]; if (time) { const card = document.createElement('div'); card.className = 'prayer-time-card'; card.setAttribute('data-prayer', prayerKey); card.innerHTML = `<p class="prayer-time-name">${prayerNamesThai[prayerKey]}</p><p class="prayer-time-value">${time}</p>`; prayerTimesGrid.appendChild(card); } }); resultsContent.classList.remove('hidden'); highlightCurrentPrayerTime(); prayerTimeInterval = setInterval(highlightCurrentPrayerTime, 60000); displayImportantDates(dateObj, hijri); }
         function initializeApp() { populateLocations(); flatpickr("#date-input", { "locale": "th", buddhistEra: true, dateFormat: "Y-m-d", defaultDate: "today" }); fetchPrayerTimes(); locationSelect.addEventListener('change', fetchPrayerTimes); dateInput.addEventListener('change', fetchPrayerTimes); todayBtn.addEventListener('click', setToday); }
         initializeApp();
